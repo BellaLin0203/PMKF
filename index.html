@@ -1,58 +1,654 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>工廠設備零件維護管理 v3</title>
-<style>
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;margin:0;background:#f3f4f6;color:#111827}header{background:#111827;color:#fff;padding:16px}main{max-width:1100px;margin:auto;padding:14px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.08)}.num{font-size:28px;font-weight:800}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tab,.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}.tab{background:#e5e7eb}.tab.active,.btn{background:#2563eb;color:#fff}.btn.gray{background:#6b7280}.btn.red{background:#dc2626}.btn.small{font-size:12px;padding:6px 8px}.page{display:none}.page.active{display:block}.layout{display:grid;grid-template-columns:330px 1fr;gap:12px}label{display:block;margin-top:10px;font-weight:700;font-size:13px}input,select,textarea{width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border:1px solid #d1d5db;border-radius:9px;font-size:15px}textarea{min-height:70px}table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left;vertical-align:top;font-size:14px}th{background:#f9fafb}.msg{margin:10px 0;padding:10px;border-radius:10px;background:#ecfeff;color:#155e75;font-weight:700;display:none}.badge{border-radius:99px;padding:4px 8px;font-weight:800;font-size:12px}.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.bad{background:#fee2e2;color:#991b1b}@media(max-width:850px){.cards{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}table{font-size:13px}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工廠設備零件維護管理</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --danger:#dc2626;
+      --warning:#f59e0b;
+      --success:#16a34a;
+      --shadow:0 10px 25px rgba(15,23,42,.08);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:linear-gradient(135deg,#1d4ed8,#2563eb,#60a5fa);
+      color:white;
+      padding:26px 24px;
+    }
+    header h1{margin:0;font-size:28px}
+    header p{margin:8px 0 0;opacity:.9}
+    main{max-width:1200px;margin:0 auto;padding:22px}
+    .dashboard{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:16px;
+      margin-top:-34px;
+      margin-bottom:20px;
+    }
+    .stat{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .stat .label{color:var(--muted);font-size:14px}
+    .stat .num{font-size:30px;font-weight:800;margin-top:6px}
+    .grid{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:18px;
+    }
+    .card h2{
+      margin:0 0 14px;
+      font-size:19px;
+    }
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin:10px 0 5px;
+    }
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:15px;
+      background:#fff;
+    }
+    textarea{min-height:76px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+    button{
+      border:0;
+      border-radius:10px;
+      padding:10px 13px;
+      cursor:pointer;
+      font-weight:700;
+      background:#e5e7eb;
+      color:#111827;
+    }
+    button.primary{background:var(--primary);color:#fff}
+    button.primary:hover{background:var(--primary-dark)}
+    button.danger{background:#fee2e2;color:var(--danger)}
+    button.small{padding:7px 9px;font-size:13px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:12px;
+    }
+    th,td{
+      text-align:left;
+      border-bottom:1px solid var(--border);
+      padding:11px 9px;
+      vertical-align:top;
+      font-size:14px;
+    }
+    th{color:var(--muted);font-weight:700;background:#f9fafb}
+    tr:hover td{background:#f9fafb}
+    .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .tab{
+      background:#e5e7eb;
+      color:#374151;
+    }
+    .tab.active{
+      background:var(--primary);
+      color:#fff;
+    }
+    .hidden{display:none}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      padding:3px 8px;
+      font-size:12px;
+      font-weight:700;
+      background:#e0f2fe;
+      color:#0369a1;
+    }
+    .badge.due{background:#fef3c7;color:#92400e}
+    .badge.overdue{background:#fee2e2;color:#991b1b}
+    .empty{
+      text-align:center;
+      padding:26px;
+      color:var(--muted);
+      background:#f9fafb;
+      border:1px dashed var(--border);
+      border-radius:12px;
+    }
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    .search{max-width:320px}
+    .note{font-size:13px;color:var(--muted);line-height:1.6}
+    @media(max-width:900px){
+      .dashboard{grid-template-columns:repeat(2,1fr);margin-top:0}
+      .grid{grid-template-columns:1fr}
+    }
+    @media(max-width:560px){
+      .dashboard{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      main{padding:14px}
+      header h1{font-size:23px}
+    }
+  </style>
 </head>
 <body>
-<header><h2 style="margin:0">工廠設備零件維護管理 v3</h2><div style="font-size:13px;color:#cbd5e1;margin-top:4px">設備、零件、維護紀錄、保養提醒。資料儲存在此瀏覽器。</div></header>
+<header>
+  <h1>工廠設備零件維護管理</h1>
+  <p>管理設備、零件、保養週期與維修履歷，資料儲存在本機瀏覽器。</p>
+</header>
+
 <main>
-<div id="msg" class="msg"></div>
-<div class="cards"><div class="card">設備總數<div id="sEq" class="num">0</div></div><div class="card">零件總數<div id="sPart" class="num">0</div></div><div class="card">維護紀錄<div id="sLog" class="num">0</div></div><div class="card">即將/逾期<div id="sDue" class="num">0</div></div></div>
-<div class="tabs"><button class="tab active" data-page="equipment">設備管理</button><button class="tab" data-page="parts">零件管理</button><button class="tab" data-page="logs">維護紀錄</button><button class="tab" data-page="alerts">保養提醒</button><button class="tab" data-page="backup">匯入/匯出</button></div>
-<section id="equipment" class="page active"><div class="layout"><div class="card"><h3>新增設備</h3><label>設備名稱 *</label><input id="eqName" placeholder="例：CNC-01"><label>設備編號</label><input id="eqCode"><label>型號</label><input id="eqModel"><label>序號 SN</label><input id="eqSn"><label>位置</label><input id="eqLoc"><label>負責人</label><input id="eqOwner"><label>備註</label><textarea id="eqNote"></textarea><button id="btnAddEq" class="btn" type="button">新增設備</button></div><div><input id="eqSearch" placeholder="搜尋設備" style="margin-bottom:8px"><table><thead><tr><th>設備</th><th>編號</th><th>型號/SN</th><th>位置</th><th>負責人</th><th>操作</th></tr></thead><tbody id="eqRows"></tbody></table></div></div></section>
-<section id="parts" class="page"><div class="layout"><div class="card"><h3>新增零件</h3><label>所屬設備 *</label><select id="partEq"></select><label>零件名稱 *</label><input id="partName"><label>Part Number</label><input id="partNo"><label>供應商</label><input id="partVendor"><label>庫存數量</label><input id="partStock" type="number" value="0"><label>更換週期天數</label><input id="partCycle" type="number" placeholder="例：90"><label>上次更換日期</label><input id="partLast" type="date"><button id="btnAddPart" class="btn" type="button">新增零件</button></div><div><input id="partSearch" placeholder="搜尋零件" style="margin-bottom:8px"><table><thead><tr><th>零件</th><th>設備</th><th>PN/供應商</th><th>庫存</th><th>下次保養</th><th>狀態</th><th>操作</th></tr></thead><tbody id="partRows"></tbody></table></div></div></section>
-<section id="logs" class="page"><div class="layout"><div class="card"><h3>新增維護紀錄</h3><label>設備 *</label><select id="logEq"></select><label>零件</label><select id="logPart"></select><label>日期</label><input id="logDate" type="date"><label>類型</label><select id="logType"><option>定期保養</option><option>零件更換</option><option>故障維修</option><option>檢查</option></select><label>維修人員</label><input id="logWorker"><label>停機時間 hr</label><input id="logDown" type="number" value="0"><label>費用</label><input id="logCost" type="number" value="0"><label>內容</label><textarea id="logDetail"></textarea><button id="btnAddLog" class="btn" type="button">新增維護紀錄</button></div><div><input id="logSearch" placeholder="搜尋紀錄" style="margin-bottom:8px"><table><thead><tr><th>日期</th><th>設備/零件</th><th>類型</th><th>人員</th><th>停機/費用</th><th>內容</th><th>操作</th></tr></thead><tbody id="logRows"></tbody></table></div></div></section>
-<section id="alerts" class="page"><table><thead><tr><th>狀態</th><th>設備</th><th>零件</th><th>上次</th><th>週期</th><th>下次</th><th>剩餘天數</th></tr></thead><tbody id="alertRows"></tbody></table></section>
-<section id="backup" class="page"><div class="card"><button id="btnExport" class="btn" type="button">匯出 JSON</button> <button id="btnClear" class="btn red" type="button">清空全部</button><label>貼上 JSON 匯入</label><textarea id="importText" style="min-height:160px"></textarea><button id="btnImport" class="btn gray" type="button">匯入</button></div></section>
+  <section class="dashboard">
+    <div class="stat"><div class="label">設備數量</div><div class="num" id="statDevices">0</div></div>
+    <div class="stat"><div class="label">零件數量</div><div class="num" id="statParts">0</div></div>
+    <div class="stat"><div class="label">維護紀錄</div><div class="num" id="statRecords">0</div></div>
+    <div class="stat"><div class="label">即將到期</div><div class="num" id="statDue">0</div></div>
+  </section>
+
+  <section class="grid">
+    <div>
+      <div class="card">
+        <h2 id="deviceFormTitle">新增設備</h2>
+        <input type="hidden" id="deviceEditId" />
+        <label>設備名稱 *</label>
+        <input id="deviceName" placeholder="例：CNC-01、空壓機 A" />
+        <div class="row">
+          <div>
+            <label>設備編號</label>
+            <input id="deviceCode" placeholder="EQ-001" />
+          </div>
+          <div>
+            <label>位置</label>
+            <input id="deviceLocation" placeholder="一廠 2F" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>廠牌</label>
+            <input id="deviceBrand" placeholder="Brand" />
+          </div>
+          <div>
+            <label>型號</label>
+            <input id="deviceModel" placeholder="Model" />
+          </div>
+        </div>
+        <label>序號</label>
+        <input id="deviceSerial" placeholder="Serial Number" />
+        <label>備註</label>
+        <textarea id="deviceNote" placeholder="可記錄用途、注意事項、SOP 位置等"></textarea>
+        <div class="actions">
+          <button class="primary" onclick="saveDevice()">儲存設備</button>
+          <button onclick="resetDeviceForm()">清除</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>資料備份</h2>
+        <p class="note">可匯出 JSON 備份，也可以匯入到另一台電腦使用。</p>
+        <div class="actions">
+          <button onclick="exportData()">匯出資料</button>
+          <button onclick="document.getElementById('importFile').click()">匯入資料</button>
+          <input id="importFile" type="file" accept=".json" class="hidden" onchange="importData(event)">
+          <button class="danger" onclick="clearAll()">清空全部</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('devices', this)">設備清單</button>
+          <button class="tab" onclick="showTab('parts', this)">零件管理</button>
+          <button class="tab" onclick="showTab('records', this)">維護紀錄</button>
+          <button class="tab" onclick="showTab('due', this)">保養提醒</button>
+        </div>
+
+        <div id="tab-devices">
+          <div class="toolbar">
+            <h2>設備清單</h2>
+            <input class="search" id="deviceSearch" placeholder="搜尋設備名稱、編號、位置" oninput="render()">
+          </div>
+          <div id="deviceList"></div>
+        </div>
+
+        <div id="tab-parts" class="hidden">
+          <h2>零件管理</h2>
+          <div class="row">
+            <div>
+              <label>選擇設備</label>
+              <select id="partDevice"></select>
+            </div>
+            <div>
+              <label>零件名稱 *</label>
+              <input id="partName" placeholder="例：皮帶、濾芯、馬達" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Part Number</label>
+              <input id="partNumber" placeholder="PN-1234" />
+            </div>
+            <div>
+              <label>保養週期（天）</label>
+              <input id="partCycle" type="number" min="0" placeholder="例：90" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" onclick="savePart()">新增零件</button>
+          </div>
+          <div id="partList"></div>
+        </div>
+
+        <div id="tab-records" class="hidden">
+          <h2>維護紀錄</h2>
+          <div class="row">
+            <div>
+              <label>設備</label>
+              <select id="recordDevice" onchange="refreshRecordParts()"></select>
+            </div>
+            <div>
+              <label>零件</label>
+              <select id="recordPart"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>維護日期</label>
+              <input id="recordDate" type="date" />
+            </div>
+            <div>
+              <label>維護人員</label>
+              <input id="recordOwner" placeholder="姓名" />
+            </div>
+          </div>
+          <label>維護內容 *</label>
+          <textarea id="recordDesc" placeholder="例：更換濾芯、檢查皮帶張力、清潔感測器"></textarea>
+          <div class="actions">
+            <button class="primary" onclick="saveRecord()">新增紀錄</button>
+          </div>
+          <div id="recordList"></div>
+        </div>
+
+        <div id="tab-due" class="hidden">
+          <h2>保養提醒</h2>
+          <p class="note">依照零件的「保養週期」與最後一次維護日期計算。30 天內到期會顯示提醒。</p>
+          <div id="dueList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
+
 <script>
-(function(){
-'use strict';
-var KEY='factory-maintenance-v3';
-var db={equipment:[],parts:[],logs:[]};
-var storageOK=true;
-function el(id){return document.getElementById(id)}
-function val(id){var x=el(id);return x?String(x.value||'').trim():''}
-function msg(t){var m=el('msg');m.textContent=t;m.style.display='block';setTimeout(function(){m.style.display='none'},2500)}
-function safeText(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function load(){try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); if(d&&d.equipment&&d.parts&&d.logs) db=d}}catch(e){storageOK=false;msg('本瀏覽器無法使用 localStorage，資料只會暫存在本頁。')}}
-function save(){try{if(storageOK)localStorage.setItem(KEY,JSON.stringify(db))}catch(e){storageOK=false;msg('儲存失敗：瀏覽器可能限制本機儲存。')}render()}
-function uid(){return 'id'+Date.now()+Math.floor(Math.random()*10000)}
-function eqName(id){for(var i=0;i<db.equipment.length;i++){if(db.equipment[i].id===id)return db.equipment[i].name+' ('+(db.equipment[i].code||'-')+')'}return '-'}
-function partName(id){for(var i=0;i<db.parts.length;i++){if(db.parts[i].id===id)return db.parts[i].name}return '-'}
-function nextDate(p){if(!p.last||!p.cycle)return '';var d=new Date(p.last+'T00:00:00');d.setDate(d.getDate()+Number(p.cycle));return d.toISOString().slice(0,10)}
-function daysLeft(ds){if(!ds)return null;var d=new Date(ds+'T00:00:00');var n=new Date();n.setHours(0,0,0,0);return Math.ceil((d-n)/86400000)}
-function badge(d){if(d===null)return '<span class="badge warn">未設定</span>';if(d<0)return '<span class="badge bad">逾期</span>';if(d<=14)return '<span class="badge warn">即將到期</span>';return '<span class="badge ok">正常</span>'}
-function updateSelects(){var opts='<option value="">請選擇</option>';for(var i=0;i<db.equipment.length;i++){var e=db.equipment[i];opts+='<option value="'+e.id+'">'+safeText(e.name)+' ('+safeText(e.code||'-')+')</option>'}el('partEq').innerHTML=opts;el('logEq').innerHTML=opts;updateLogParts()}
-function updateLogParts(){var eid=val('logEq');var opts='<option value="">不指定</option>';for(var i=0;i<db.parts.length;i++){var p=db.parts[i];if(!eid||p.equipmentId===eid)opts+='<option value="'+p.id+'">'+safeText(p.name)+' ('+safeText(p.partNo||'-')+')</option>'}el('logPart').innerHTML=opts}
-function render(){updateSelects();el('sEq').textContent=db.equipment.length;el('sPart').textContent=db.parts.length;el('sLog').textContent=db.logs.length;var due=0;for(var i=0;i<db.parts.length;i++){var dl=daysLeft(nextDate(db.parts[i]));if(dl!==null&&dl<=14)due++}el('sDue').textContent=due;renderEq();renderParts();renderLogs();renderAlerts()}
-function renderEq(){var q=val('eqSearch').toLowerCase();var h='';for(var i=0;i<db.equipment.length;i++){var e=db.equipment[i];if(JSON.stringify(e).toLowerCase().indexOf(q)<0)continue;h+='<tr><td><b>'+safeText(e.name)+'</b><br>'+safeText(e.note)+'</td><td>'+safeText(e.code||'-')+'</td><td>'+safeText(e.model||'-')+'<br>'+safeText(e.sn)+'</td><td>'+safeText(e.location||'-')+'</td><td>'+safeText(e.owner||'-')+'</td><td><button class="btn small red" data-del="equipment" data-id="'+e.id+'">刪除</button></td></tr>'}el('eqRows').innerHTML=h||'<tr><td colspan="6">尚無設備</td></tr>'}
-function renderParts(){var q=val('partSearch').toLowerCase();var h='';for(var i=0;i<db.parts.length;i++){var p=db.parts[i];var text=(JSON.stringify(p)+eqName(p.equipmentId)).toLowerCase();if(text.indexOf(q)<0)continue;var nd=nextDate(p),dl=daysLeft(nd);h+='<tr><td><b>'+safeText(p.name)+'</b></td><td>'+safeText(eqName(p.equipmentId))+'</td><td>'+safeText(p.partNo||'-')+'<br>'+safeText(p.vendor)+'</td><td>'+p.stock+'</td><td>'+(nd||'-')+'</td><td>'+badge(dl)+'</td><td><button class="btn small red" data-del="parts" data-id="'+p.id+'">刪除</button></td></tr>'}el('partRows').innerHTML=h||'<tr><td colspan="7">尚無零件</td></tr>'}
-function renderLogs(){var q=val('logSearch').toLowerCase();var arr=db.logs.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date))});var h='';for(var i=0;i<arr.length;i++){var l=arr[i];var text=(JSON.stringify(l)+eqName(l.equipmentId)+partName(l.partId)).toLowerCase();if(text.indexOf(q)<0)continue;h+='<tr><td>'+safeText(l.date||'-')+'</td><td>'+safeText(eqName(l.equipmentId))+'<br>'+safeText(partName(l.partId))+'</td><td>'+safeText(l.type)+'</td><td>'+safeText(l.worker||'-')+'</td><td>'+l.downtime+' hr<br>$'+l.cost+'</td><td>'+safeText(l.detail||'-')+'</td><td><button class="btn small red" data-del="logs" data-id="'+l.id+'">刪除</button></td></tr>'}el('logRows').innerHTML=h||'<tr><td colspan="7">尚無紀錄</td></tr>'}
-function renderAlerts(){var h='';for(var i=0;i<db.parts.length;i++){var p=db.parts[i],nd=nextDate(p),dl=daysLeft(nd);h+='<tr><td>'+badge(dl)+'</td><td>'+safeText(eqName(p.equipmentId))+'</td><td>'+safeText(p.name)+'</td><td>'+safeText(p.last||'-')+'</td><td>'+safeText(p.cycle||'-')+' 天</td><td>'+(nd||'-')+'</td><td>'+(dl===null?'-':dl)+'</td></tr>'}el('alertRows').innerHTML=h||'<tr><td colspan="7">尚無提醒</td></tr>'}
-function addEq(){var name=val('eqName');if(!name){msg('請先輸入設備名稱');return}db.equipment.push({id:uid(),name:name,code:val('eqCode'),model:val('eqModel'),sn:val('eqSn'),location:val('eqLoc'),owner:val('eqOwner'),note:val('eqNote')});['eqName','eqCode','eqModel','eqSn','eqLoc','eqOwner','eqNote'].forEach(function(id){el(id).value=''}) ;save();msg('已新增設備')}
-function addPart(){if(!val('partEq')){msg('請先選擇所屬設備');return}if(!val('partName')){msg('請輸入零件名稱');return}db.parts.push({id:uid(),equipmentId:val('partEq'),name:val('partName'),partNo:val('partNo'),vendor:val('partVendor'),stock:Number(val('partStock')||0),cycle:Number(val('partCycle')||0),last:val('partLast')});['partName','partNo','partVendor','partCycle'].forEach(function(id){el(id).value=''}) ;el('partStock').value='0';save();msg('已新增零件')}
-function addLog(){if(!val('logEq')){msg('請先選擇設備');return}var l={id:uid(),equipmentId:val('logEq'),partId:val('logPart'),date:val('logDate'),type:val('logType'),worker:val('logWorker'),downtime:Number(val('logDown')||0),cost:Number(val('logCost')||0),detail:val('logDetail')};db.logs.push(l);for(var i=0;i<db.parts.length;i++){if(db.parts[i].id===l.partId&&(l.type==='零件更換'||l.type==='定期保養'))db.parts[i].last=l.date}['logWorker','logDown','logCost','logDetail'].forEach(function(id){el(id).value=(id==='logDown'||id==='logCost')?'0':''}) ;save();msg('已新增維護紀錄')}
-function del(type,id){if(!confirm('確定刪除？'))return;db[type]=db[type].filter(function(x){return x.id!==id});if(type==='equipment'){db.parts=db.parts.filter(function(p){return p.equipmentId!==id});db.logs=db.logs.filter(function(l){return l.equipmentId!==id})}if(type==='parts'){db.logs=db.logs.filter(function(l){return l.partId!==id})}save();msg('已刪除')}
-function bind(){el('btnAddEq').addEventListener('click',addEq);el('btnAddPart').addEventListener('click',addPart);el('btnAddLog').addEventListener('click',addLog);el('logEq').addEventListener('change',updateLogParts);['eqSearch','partSearch','logSearch'].forEach(function(id){el(id).addEventListener('input',render)});document.body.addEventListener('click',function(ev){var t=ev.target;if(t.getAttribute('data-page')){var p=t.getAttribute('data-page');document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active')});t.classList.add('active');document.querySelectorAll('.page').forEach(function(s){s.classList.remove('active')});el(p).classList.add('active')}if(t.getAttribute('data-del'))del(t.getAttribute('data-del'),t.getAttribute('data-id'))});el('btnExport').addEventListener('click',function(){var blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='factory-maintenance-data.json';a.click();msg('已匯出')});el('btnImport').addEventListener('click',function(){try{var d=JSON.parse(val('importText'));if(!d.equipment||!d.parts||!d.logs)throw new Error('bad');db=d;save();msg('匯入完成')}catch(e){msg('JSON 格式錯誤')}});el('btnClear').addEventListener('click',function(){if(confirm('確定清空全部資料？')){db={equipment:[],parts:[],logs:[]};save();msg('已清空')}})}
-window.onerror=function(m){msg('程式錯誤：'+m);return false};
-load();bind();var d=new Date().toISOString().slice(0,10);el('partLast').value=d;el('logDate').value=d;render();msg('App 已載入，可新增設備');
-})();
+const STORAGE_KEY = "factoryMaintenanceDataV2";
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"devices":[],"parts":[],"records":[]}');
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function escapeHtml(str){
+  return String(str || "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + Number(days || 0));
+  return d.toISOString().slice(0,10);
+}
+function diffDays(dateStr){
+  const target = new Date(dateStr + "T00:00:00");
+  const now = new Date(today() + "T00:00:00");
+  return Math.ceil((target - now) / 86400000);
+}
+function deviceName(id){
+  const d = data.devices.find(x => x.id === id);
+  return d ? d.name : "未指定設備";
+}
+function partName(id){
+  const p = data.parts.find(x => x.id === id);
+  return p ? p.name : "未指定零件";
+}
+
+function saveDevice(){
+  const id = document.getElementById("deviceEditId").value;
+  const name = document.getElementById("deviceName").value.trim();
+  if(!name){ alert("請輸入設備名稱"); return; }
+
+  const item = {
+    id: id || uid(),
+    name,
+    code: document.getElementById("deviceCode").value.trim(),
+    location: document.getElementById("deviceLocation").value.trim(),
+    brand: document.getElementById("deviceBrand").value.trim(),
+    model: document.getElementById("deviceModel").value.trim(),
+    serial: document.getElementById("deviceSerial").value.trim(),
+    note: document.getElementById("deviceNote").value.trim()
+  };
+
+  if(id){
+    const idx = data.devices.findIndex(x => x.id === id);
+    if(idx >= 0) data.devices[idx] = item;
+  }else{
+    data.devices.push(item);
+  }
+  resetDeviceForm();
+  save();
+  render();
+}
+
+function editDevice(id){
+  const d = data.devices.find(x => x.id === id);
+  if(!d) return;
+  document.getElementById("deviceFormTitle").textContent = "編輯設備";
+  document.getElementById("deviceEditId").value = d.id;
+  document.getElementById("deviceName").value = d.name || "";
+  document.getElementById("deviceCode").value = d.code || "";
+  document.getElementById("deviceLocation").value = d.location || "";
+  document.getElementById("deviceBrand").value = d.brand || "";
+  document.getElementById("deviceModel").value = d.model || "";
+  document.getElementById("deviceSerial").value = d.serial || "";
+  document.getElementById("deviceNote").value = d.note || "";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function resetDeviceForm(){
+  document.getElementById("deviceFormTitle").textContent = "新增設備";
+  ["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id => document.getElementById(id).value = "");
+}
+
+function deleteDevice(id){
+  if(!confirm("確定刪除此設備？相關零件與維護紀錄也會刪除。")) return;
+  data.devices = data.devices.filter(x => x.id !== id);
+  const partIds = data.parts.filter(p => p.deviceId === id).map(p => p.id);
+  data.parts = data.parts.filter(p => p.deviceId !== id);
+  data.records = data.records.filter(r => r.deviceId !== id && !partIds.includes(r.partId));
+  save();
+  render();
+}
+
+function savePart(){
+  const deviceId = document.getElementById("partDevice").value;
+  const name = document.getElementById("partName").value.trim();
+  if(!deviceId){ alert("請先新增或選擇設備"); return; }
+  if(!name){ alert("請輸入零件名稱"); return; }
+  data.parts.push({
+    id: uid(),
+    deviceId,
+    name,
+    number: document.getElementById("partNumber").value.trim(),
+    cycle: Number(document.getElementById("partCycle").value || 0)
+  });
+  ["partName","partNumber","partCycle"].forEach(id => document.getElementById(id).value = "");
+  save();
+  render();
+}
+
+function deletePart(id){
+  if(!confirm("確定刪除此零件？相關維護紀錄也會刪除。")) return;
+  data.parts = data.parts.filter(x => x.id !== id);
+  data.records = data.records.filter(x => x.partId !== id);
+  save();
+  render();
+}
+
+function saveRecord(){
+  const deviceId = document.getElementById("recordDevice").value;
+  const partId = document.getElementById("recordPart").value;
+  const desc = document.getElementById("recordDesc").value.trim();
+  if(!deviceId){ alert("請先選擇設備"); return; }
+  if(!desc){ alert("請輸入維護內容"); return; }
+  data.records.push({
+    id: uid(),
+    deviceId,
+    partId,
+    date: document.getElementById("recordDate").value || today(),
+    owner: document.getElementById("recordOwner").value.trim(),
+    desc
+  });
+  document.getElementById("recordDate").value = today();
+  document.getElementById("recordOwner").value = "";
+  document.getElementById("recordDesc").value = "";
+  save();
+  render();
+}
+
+function deleteRecord(id){
+  if(!confirm("確定刪除此維護紀錄？")) return;
+  data.records = data.records.filter(x => x.id !== id);
+  save();
+  render();
+}
+
+function refreshSelects(){
+  const deviceOptions = data.devices.map(d => `<option value="${d.id}">${escapeHtml(d.name)}${d.code ? " / " + escapeHtml(d.code) : ""}</option>`).join("");
+  document.getElementById("partDevice").innerHTML = deviceOptions || '<option value="">尚無設備</option>';
+  document.getElementById("recordDevice").innerHTML = deviceOptions || '<option value="">尚無設備</option>';
+  refreshRecordParts();
+}
+
+function refreshRecordParts(){
+  const deviceId = document.getElementById("recordDevice").value;
+  const parts = data.parts.filter(p => p.deviceId === deviceId);
+  document.getElementById("recordPart").innerHTML =
+    '<option value="">不指定零件</option>' +
+    parts.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+}
+
+function renderDevices(){
+  const q = (document.getElementById("deviceSearch")?.value || "").toLowerCase();
+  const list = data.devices.filter(d => [d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));
+  if(!list.length){
+    document.getElementById("deviceList").innerHTML = '<div class="empty">目前沒有設備資料</div>';
+    return;
+  }
+  document.getElementById("deviceList").innerHTML = `
+    <table>
+      <thead><tr><th>設備</th><th>位置</th><th>型號 / 序號</th><th>零件</th><th>操作</th></tr></thead>
+      <tbody>
+      ${list.map(d => `
+        <tr>
+          <td><b>${escapeHtml(d.name)}</b><br><span class="note">${escapeHtml(d.code || "-")}</span></td>
+          <td>${escapeHtml(d.location || "-")}</td>
+          <td>${escapeHtml([d.brand,d.model].filter(Boolean).join(" ") || "-")}<br><span class="note">${escapeHtml(d.serial || "")}</span></td>
+          <td>${data.parts.filter(p => p.deviceId === d.id).length}</td>
+          <td>
+            <button class="small primary" onclick="editDevice('${d.id}')">編輯</button>
+            <button class="small danger" onclick="deleteDevice('${d.id}')">刪除</button>
+          </td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderParts(){
+  if(!data.parts.length){
+    document.getElementById("partList").innerHTML = '<div class="empty" style="margin-top:14px">目前沒有零件資料</div>';
+    return;
+  }
+  document.getElementById("partList").innerHTML = `
+    <table style="margin-top:14px">
+      <thead><tr><th>設備</th><th>零件</th><th>Part Number</th><th>週期</th><th>操作</th></tr></thead>
+      <tbody>
+      ${data.parts.map(p => `
+        <tr>
+          <td>${escapeHtml(deviceName(p.deviceId))}</td>
+          <td><b>${escapeHtml(p.name)}</b></td>
+          <td>${escapeHtml(p.number || "-")}</td>
+          <td>${p.cycle ? p.cycle + " 天" : "-"}</td>
+          <td><button class="small danger" onclick="deletePart('${p.id}')">刪除</button></td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderRecords(){
+  if(!data.records.length){
+    document.getElementById("recordList").innerHTML = '<div class="empty" style="margin-top:14px">目前沒有維護紀錄</div>';
+    return;
+  }
+  const sorted = [...data.records].sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+  document.getElementById("recordList").innerHTML = `
+    <table style="margin-top:14px">
+      <thead><tr><th>日期</th><th>設備 / 零件</th><th>內容</th><th>人員</th><th>操作</th></tr></thead>
+      <tbody>
+      ${sorted.map(r => `
+        <tr>
+          <td>${escapeHtml(r.date || "-")}</td>
+          <td><b>${escapeHtml(deviceName(r.deviceId))}</b><br><span class="note">${escapeHtml(r.partId ? partName(r.partId) : "未指定零件")}</span></td>
+          <td>${escapeHtml(r.desc)}</td>
+          <td>${escapeHtml(r.owner || "-")}</td>
+          <td><button class="small danger" onclick="deleteRecord('${r.id}')">刪除</button></td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function getDueItems(){
+  return data.parts.filter(p => p.cycle > 0).map(p => {
+    const records = data.records
+      .filter(r => r.partId === p.id)
+      .sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+    const lastDate = records[0]?.date || "";
+    const nextDate = lastDate ? addDays(lastDate, p.cycle) : "";
+    const remain = nextDate ? diffDays(nextDate) : null;
+    return {...p, lastDate, nextDate, remain};
+  }).filter(x => x.remain === null || x.remain <= 30)
+    .sort((a,b) => (a.remain ?? -9999) - (b.remain ?? -9999));
+}
+
+function renderDue(){
+  const items = getDueItems();
+  if(!items.length){
+    document.getElementById("dueList").innerHTML = '<div class="empty">目前沒有 30 天內到期的保養項目</div>';
+    return;
+  }
+  document.getElementById("dueList").innerHTML = `
+    <table>
+      <thead><tr><th>狀態</th><th>設備</th><th>零件</th><th>最後維護</th><th>下次保養</th></tr></thead>
+      <tbody>
+      ${items.map(p => {
+        let badge = '<span class="badge due">未維護</span>';
+        if(p.remain !== null && p.remain < 0) badge = `<span class="badge overdue">逾期 ${Math.abs(p.remain)} 天</span>`;
+        else if(p.remain !== null) badge = `<span class="badge due">剩 ${p.remain} 天</span>`;
+        return `
+        <tr>
+          <td>${badge}</td>
+          <td>${escapeHtml(deviceName(p.deviceId))}</td>
+          <td><b>${escapeHtml(p.name)}</b><br><span class="note">${escapeHtml(p.number || "")}</span></td>
+          <td>${escapeHtml(p.lastDate || "尚無紀錄")}</td>
+          <td>${escapeHtml(p.nextDate || "請新增維護紀錄")}</td>
+        </tr>`;
+      }).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderStats(){
+  document.getElementById("statDevices").textContent = data.devices.length;
+  document.getElementById("statParts").textContent = data.parts.length;
+  document.getElementById("statRecords").textContent = data.records.length;
+  document.getElementById("statDue").textContent = getDueItems().length;
+}
+
+function render(){
+  save();
+  renderStats();
+  refreshSelects();
+  renderDevices();
+  renderParts();
+  renderRecords();
+  renderDue();
+}
+
+function showTab(name, btn){
+  ["devices","parts","records","due"].forEach(t => document.getElementById("tab-"+t).classList.add("hidden"));
+  document.getElementById("tab-"+name).classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "factory-maintenance-backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!imported.devices || !imported.parts || !imported.records) throw new Error();
+      data = imported;
+      save();
+      render();
+      alert("匯入完成");
+    }catch(err){
+      alert("匯入失敗，請確認 JSON 格式是否正確");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function clearAll(){
+  if(!confirm("確定清空全部資料？此動作無法復原。")) return;
+  data = {devices:[],parts:[],records:[]};
+  save();
+  resetDeviceForm();
+  render();
+}
+
+document.getElementById("recordDate").value = today();
+render();
 </script>
 </body>
 </html>
