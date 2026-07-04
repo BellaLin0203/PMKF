@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工廠設備零件維護管理</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --danger:#dc2626;
+      --warning:#f59e0b;
+      --success:#16a34a;
+      --shadow:0 10px 25px rgba(15,23,42,.08);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:linear-gradient(135deg,#1d4ed8,#2563eb,#60a5fa);
+      color:white;
+      padding:26px 24px;
+    }
+    header h1{margin:0;font-size:28px}
+    header p{margin:8px 0 0;opacity:.9}
+    main{max-width:1200px;margin:0 auto;padding:22px}
+    .dashboard{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:16px;
+      margin-top:-34px;
+      margin-bottom:20px;
+    }
+    .stat{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .stat .label{color:var(--muted);font-size:14px}
+    .stat .num{font-size:30px;font-weight:800;margin-top:6px}
+    .grid{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:18px;
+    }
+    .card h2{
+      margin:0 0 14px;
+      font-size:19px;
+    }
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin:10px 0 5px;
+    }
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:15px;
+      background:#fff;
+    }
+    textarea{min-height:76px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+    button{
+      border:0;
+      border-radius:10px;
+      padding:10px 13px;
+      cursor:pointer;
+      font-weight:700;
+      background:#e5e7eb;
+      color:#111827;
+    }
+    button.primary{background:var(--primary);color:#fff}
+    button.primary:hover{background:var(--primary-dark)}
+    button.danger{background:#fee2e2;color:var(--danger)}
+    button.small{padding:7px 9px;font-size:13px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:12px;
+    }
+    th,td{
+      text-align:left;
+      border-bottom:1px solid var(--border);
+      padding:11px 9px;
+      vertical-align:top;
+      font-size:14px;
+    }
+    th{color:var(--muted);font-weight:700;background:#f9fafb}
+    tr:hover td{background:#f9fafb}
+    .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .tab{
+      background:#e5e7eb;
+      color:#374151;
+    }
+    .tab.active{
+      background:var(--primary);
+      color:#fff;
+    }
+    .hidden{display:none}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      padding:3px 8px;
+      font-size:12px;
+      font-weight:700;
+      background:#e0f2fe;
+      color:#0369a1;
+    }
+    .badge.due{background:#fef3c7;color:#92400e}
+    .badge.overdue{background:#fee2e2;color:#991b1b}
+    .empty{
+      text-align:center;
+      padding:26px;
+      color:var(--muted);
+      background:#f9fafb;
+      border:1px dashed var(--border);
+      border-radius:12px;
+    }
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    .search{max-width:320px}
+    .note{font-size:13px;color:var(--muted);line-height:1.6}
+    @media(max-width:900px){
+      .dashboard{grid-template-columns:repeat(2,1fr);margin-top:0}
+      .grid{grid-template-columns:1fr}
+    }
+    @media(max-width:560px){
+      .dashboard{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      main{padding:14px}
+      header h1{font-size:23px}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>工廠設備零件維護管理</h1>
+  <p>管理設備、零件、保養週期與維修履歷，資料儲存在本機瀏覽器。</p>
+</header>
+
+<main>
+  <section class="dashboard">
+    <div class="stat"><div class="label">設備數量</div><div class="num" id="statDevices">0</div></div>
+    <div class="stat"><div class="label">零件數量</div><div class="num" id="statParts">0</div></div>
+    <div class="stat"><div class="label">維護紀錄</div><div class="num" id="statRecords">0</div></div>
+    <div class="stat"><div class="label">即將到期</div><div class="num" id="statDue">0</div></div>
+  </section>
+
+  <section class="grid">
+    <div>
+      <div class="card">
+        <h2 id="deviceFormTitle">新增設備</h2>
+        <input type="hidden" id="deviceEditId" />
+        <label>設備名稱 *</label>
+        <input id="deviceName" placeholder="例：CNC-01、空壓機 A" />
+        <div class="row">
+          <div>
+            <label>設備編號</label>
+            <input id="deviceCode" placeholder="EQ-001" />
+          </div>
+          <div>
+            <label>位置</label>
+            <input id="deviceLocation" placeholder="一廠 2F" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>廠牌</label>
+            <input id="deviceBrand" placeholder="Brand" />
+          </div>
+          <div>
+            <label>型號</label>
+            <input id="deviceModel" placeholder="Model" />
+          </div>
+        </div>
+        <label>序號</label>
+        <input id="deviceSerial" placeholder="Serial Number" />
+        <label>備註</label>
+        <textarea id="deviceNote" placeholder="可記錄用途、注意事項、SOP 位置等"></textarea>
+        <div class="actions">
+          <button class="primary" onclick="saveDevice()">儲存設備</button>
+          <button onclick="resetDeviceForm()">清除</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>資料備份</h2>
+        <p class="note">可匯出 JSON 備份，也可以匯入到另一台電腦使用。</p>
+        <div class="actions">
+          <button onclick="exportData()">匯出資料</button>
+          <button onclick="document.getElementById('importFile').click()">匯入資料</button>
+          <input id="importFile" type="file" accept=".json" class="hidden" onchange="importData(event)">
+          <button class="danger" onclick="clearAll()">清空全部</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('devices', this)">設備清單</button>
+          <button class="tab" onclick="showTab('parts', this)">零件管理</button>
+          <button class="tab" onclick="showTab('records', this)">維護紀錄</button>
+          <button class="tab" onclick="showTab('due', this)">保養提醒</button>
+        </div>
+
+        <div id="tab-devices">
+          <div class="toolbar">
+            <h2>設備清單</h2>
+            <input class="search" id="deviceSearch" placeholder="搜尋設備名稱、編號、位置" oninput="render()">
+          </div>
+          <div id="deviceList"></div>
+        </div>
+
+        <div id="tab-parts" class="hidden">
+          <h2>零件管理</h2>
+          <input type="hidden" id="partEditId" />
+          <div class="row">
+            <div>
+              <label>選擇設備</label>
+              <select id="partDevice"></select>
+            </div>
+            <div>
+              <label>零件名稱 *</label>
+              <input id="partName" placeholder="例：皮帶、濾芯、馬達" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Part Number</label>
+              <input id="partNumber" placeholder="PN-1234" />
+            </div>
+            <div>
+              <label>保養週期（天）</label>
+              <input id="partCycle" type="number" min="0" placeholder="例：90" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" onclick="savePart()">新增 / 更新零件</button>
+            <button onclick="resetPartForm()">清除</button>
+          </div>
+          <div id="partList"></div>
+        </div>
+
+        <div id="tab-records" class="hidden">
+          <h2>維護紀錄</h2>
+          <div class="row">
+            <div>
+              <label>設備</label>
+              <select id="recordDevice" onchange="refreshRecordParts()"></select>
+            </div>
+            <div>
+              <label>零件</label>
+              <select id="recordPart"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>維護日期</label>
+              <input id="recordDate" type="date" />
+            </div>
+            <div>
+              <label>維護人員</label>
+              <input id="recordOwner" placeholder="姓名" />
+            </div>
+          </div>
+          <label>維護內容 *</label>
+          <textarea id="recordDesc" placeholder="例：更換濾芯、檢查皮帶張力、清潔感測器"></textarea>
+          <div class="actions">
+            <button class="primary" onclick="saveRecord()">新增紀錄</button>
+          </div>
+          <div id="recordList"></div>
+        </div>
+
+        <div id="tab-due" class="hidden">
+          <h2>保養提醒</h2>
+          <p class="note">依照零件的「保養週期」與最後一次維護日期計算。30 天內到期會顯示提醒。</p>
+          <div id="dueList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = "factoryMaintenanceDataV2";
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"devices":[],"parts":[],"records":[]}');
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function escapeHtml(str){
+  return String(str || "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + Number(days || 0));
+  return d.toISOString().slice(0,10);
+}
+function diffDays(dateStr){
+  const target = new Date(dateStr + "T00:00:00");
+  const now = new Date(today() + "T00:00:00");
+  return Math.ceil((target - now) / 86400000);
+}
+function deviceName(id){
+  const d = data.devices.find(x => x.id === id);
+  return d ? d.name : "未指定設備";
+}
+function partName(id){
+  const p = data.parts.find(x => x.id === id);
+  return p ? p.name : "未指定零件";
+}
+
+function saveDevice(){
+  const id = document.getElementById("deviceEditId").value;
+  const name = document.getElementById("deviceName").value.trim();
+  if(!name){ alert("請輸入設備名稱"); return; }
+
+  const item = {
+    id: id || uid(),
+    name,
+    code: document.getElementById("deviceCode").value.trim(),
+    location: document.getElementById("deviceLocation").value.trim(),
+    brand: document.getElementById("deviceBrand").value.trim(),
+    model: document.getElementById("deviceModel").value.trim(),
+    serial: document.getElementById("deviceSerial").value.trim(),
+    note: document.getElementById("deviceNote").value.trim()
+  };
+
+  if(id){
+    const idx = data.devices.findIndex(x => x.id === id);
+    if(idx >= 0) data.devices[idx] = item;
+  }else{
+    data.devices.push(item);
+  }
+  resetDeviceForm();
+  save();
+  render();
+}
+
+function editDevice(id){
+  const d = data.devices.find(x => x.id === id);
+  if(!d) return;
+  document.getElementById("deviceFormTitle").textContent = "編輯設備";
+  document.getElementById("deviceEditId").value = d.id;
+  document.getElementById("deviceName").value = d.name || "";
+  document.getElementById("deviceCode").value = d.code || "";
+  document.getElementById("deviceLocation").value = d.location || "";
+  document.getElementById("deviceBrand").value = d.brand || "";
+  document.getElementById("deviceModel").value = d.model || "";
+  document.getElementById("deviceSerial").value = d.serial || "";
+  document.getElementById("deviceNote").value = d.note || "";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function resetDeviceForm(){
+  document.getElementById("deviceFormTitle").textContent = "新增設備";
+  ["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id => document.getElementById(id).value = "");
+}
+
+function deleteDevice(id){
+  if(!confirm("確定刪除此設備？相關零件與維護紀錄也會刪除。")) return;
+  data.devices = data.devices.filter(x => x.id !== id);
+  const partIds = data.parts.filter(p => p.deviceId === id).map(p => p.id);
+  data.parts = data.parts.filter(p => p.deviceId !== id);
+  data.records = data.records.filter(r => r.deviceId !== id && !partIds.includes(r.partId));
+  save();
+  render();
+}
+
+function savePart(){
+  const editId = document.getElementById("partEditId").value;
+  const deviceId = document.getElementById("partDevice").value;
+  const name = document.getElementById("partName").value.trim();
+  if(!deviceId){ alert("請先新增或選擇設備"); return; }
+  if(!name){ alert("請輸入零件名稱"); return; }
+
+  const item = {
+    id: editId || uid(),
+    deviceId,
+    name,
+    number: document.getElementById("partNumber").value.trim(),
+    cycle: Number(document.getElementById("partCycle").value || 0)
+  };
+
+  if(editId){
+    const idx = data.parts.findIndex(x => x.id === editId);
+    if(idx >= 0) data.parts[idx] = item;
+  }else{
+    data.parts.push(item);
+  }
+
+  resetPartForm();
+  save();
+  render();
+}
+
+function editPart(id){
+  const p = data.parts.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById("partEditId").value = p.id;
+  document.getElementById("partDevice").value = p.deviceId || "";
+  document.getElementById("partName").value = p.name || "";
+  document.getElementById("partNumber").value = p.number || "";
+  document.getElementById("partCycle").value = p.cycle || "";
+}
+
+function resetPartForm(){
+  ["partEditId","partName","partNumber","partCycle"].forEach(id => document.getElementById(id).value = "");
+}
+
+function deletePart(id){
+  if(!confirm("確定刪除此零件？相關維護紀錄也會刪除。")) return;
+  data.parts = data.parts.filter(x => x.id !== id);
+  data.records = data.records.filter(x => x.partId !== id);
+  save();
+  render();
+}
+
+function saveRecord(){
+  const deviceId = document.getElementById("recordDevice").value;
+  const partId = document.getElementById("recordPart").value;
+  const desc = document.getElementById("recordDesc").value.trim();
+  if(!deviceId){ alert("請先選擇設備"); return; }
+  if(!desc){ alert("請輸入維護內容"); return; }
+  data.records.push({
+    id: uid(),
+    deviceId,
+    partId,
+    date: document.getElementById("recordDate").value || today(),
+    owner: document.getElementById("recordOwner").value.trim(),
+    desc
+  });
+  document.getElementById("recordDate").value = today();
+  document.getElementById("recordOwner").value = "";
+  document.getElementById("recordDesc").value = "";
+  save();
+  render();
+}
+
+function deleteRecord(id){
+  if(!confirm("確定刪除此維護紀錄？")) return;
+  data.records = data.records.filter(x => x.id !== id);
+  save();
+  render();
+}
+
+function refreshSelects(){
+  const deviceOptions = data.devices.map(d => `<option value="${d.id}">${escapeHtml(d.name)}${d.code ? " / " + escapeHtml(d.code) : ""}</option>`).join("");
+  document.getElementById("partDevice").innerHTML = deviceOptions || '<option value="">尚無設備</option>';
+  document.getElementById("recordDevice").innerHTML = deviceOptions || '<option value="">尚無設備</option>';
+  refreshRecordParts();
+}
+
+function refreshRecordParts(){
+  const deviceId = document.getElementById("recordDevice").value;
+  const parts = data.parts.filter(p => p.deviceId === deviceId);
+  document.getElementById("recordPart").innerHTML =
+    '<option value="">不指定零件</option>' +
+    parts.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+}
+
+function renderDevices(){
+  const q = (document.getElementById("deviceSearch")?.value || "").toLowerCase();
+  const list = data.devices.filter(d => [d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));
+  if(!list.length){
+    document.getElementById("deviceList").innerHTML = '<div class="empty">目前沒有設備資料</div>';
+    return;
+  }
+  document.getElementById("deviceList").innerHTML = `
+    <table>
+      <thead><tr><th>設備</th><th>位置</th><th>型號 / 序號</th><th>零件</th><th>操作</th></tr></thead>
+      <tbody>
+      ${list.map(d => `
+        <tr>
+          <td><b>${escapeHtml(d.name)}</b><br><span class="note">${escapeHtml(d.code || "-")}</span></td>
+          <td>${escapeHtml(d.location || "-")}</td>
+          <td>${escapeHtml([d.brand,d.model].filter(Boolean).join(" ") || "-")}<br><span class="note">${escapeHtml(d.serial || "")}</span></td>
+          <td>${data.parts.filter(p => p.deviceId === d.id).length}</td>
+          <td>
+            <button class="small primary" onclick="editDevice('${d.id}')">編輯</button>
+            <button class="small danger" onclick="deleteDevice('${d.id}')">刪除</button>
+          </td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderParts(){
+  if(!data.parts.length){
+    document.getElementById("partList").innerHTML = '<div class="empty" style="margin-top:14px">目前沒有零件資料</div>';
+    return;
+  }
+  document.getElementById("partList").innerHTML = `
+    <table style="margin-top:14px">
+      <thead><tr><th>設備</th><th>零件</th><th>Part Number</th><th>週期</th><th>操作</th></tr></thead>
+      <tbody>
+      ${data.parts.map(p => `
+        <tr>
+          <td>${escapeHtml(deviceName(p.deviceId))}</td>
+          <td><b>${escapeHtml(p.name)}</b></td>
+          <td>${escapeHtml(p.number || "-")}</td>
+          <td>${p.cycle ? p.cycle + " 天" : "-"}</td>
+          <td>
+            <button class="small primary" onclick="editPart('${p.id}')">編輯</button>
+            <button class="small danger" onclick="deletePart('${p.id}')">刪除</button>
+          </td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderRecords(){
+  if(!data.records.length){
+    document.getElementById("recordList").innerHTML = '<div class="empty" style="margin-top:14px">目前沒有維護紀錄</div>';
+    return;
+  }
+  const sorted = [...data.records].sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+  document.getElementById("recordList").innerHTML = `
+    <table style="margin-top:14px">
+      <thead><tr><th>日期</th><th>設備 / 零件</th><th>內容</th><th>人員</th><th>操作</th></tr></thead>
+      <tbody>
+      ${sorted.map(r => `
+        <tr>
+          <td>${escapeHtml(r.date || "-")}</td>
+          <td><b>${escapeHtml(deviceName(r.deviceId))}</b><br><span class="note">${escapeHtml(r.partId ? partName(r.partId) : "未指定零件")}</span></td>
+          <td>${escapeHtml(r.desc)}</td>
+          <td>${escapeHtml(r.owner || "-")}</td>
+          <td><button class="small danger" onclick="deleteRecord('${r.id}')">刪除</button></td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function getDueItems(){
+  return data.parts.filter(p => p.cycle > 0).map(p => {
+    const records = data.records
+      .filter(r => r.partId === p.id)
+      .sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+    const lastDate = records[0]?.date || "";
+    const nextDate = lastDate ? addDays(lastDate, p.cycle) : "";
+    const remain = nextDate ? diffDays(nextDate) : null;
+    return {...p, lastDate, nextDate, remain};
+  }).filter(x => x.remain === null || x.remain <= 30)
+    .sort((a,b) => (a.remain ?? -9999) - (b.remain ?? -9999));
+}
+
+function renderDue(){
+  const items = getDueItems();
+  if(!items.length){
+    document.getElementById("dueList").innerHTML = '<div class="empty">目前沒有 30 天內到期的保養項目</div>';
+    return;
+  }
+  document.getElementById("dueList").innerHTML = `
+    <table>
+      <thead><tr><th>狀態</th><th>設備</th><th>零件</th><th>最後維護</th><th>下次保養</th></tr></thead>
+      <tbody>
+      ${items.map(p => {
+        let badge = '<span class="badge due">未維護</span>';
+        if(p.remain !== null && p.remain < 0) badge = `<span class="badge overdue">逾期 ${Math.abs(p.remain)} 天</span>`;
+        else if(p.remain !== null) badge = `<span class="badge due">剩 ${p.remain} 天</span>`;
+        return `
+        <tr>
+          <td>${badge}</td>
+          <td>${escapeHtml(deviceName(p.deviceId))}</td>
+          <td><b>${escapeHtml(p.name)}</b><br><span class="note">${escapeHtml(p.number || "")}</span></td>
+          <td>${escapeHtml(p.lastDate || "尚無紀錄")}</td>
+          <td>${escapeHtml(p.nextDate || "請新增維護紀錄")}</td>
+        </tr>`;
+      }).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderStats(){
+  document.getElementById("statDevices").textContent = data.devices.length;
+  document.getElementById("statParts").textContent = data.parts.length;
+  document.getElementById("statRecords").textContent = data.records.length;
+  document.getElementById("statDue").textContent = getDueItems().length;
+}
+
+function render(){
+  save();
+  renderStats();
+  refreshSelects();
+  renderDevices();
+  renderParts();
+  renderRecords();
+  renderDue();
+}
+
+function showTab(name, btn){
+  ["devices","parts","records","due"].forEach(t => document.getElementById("tab-"+t).classList.add("hidden"));
+  document.getElementById("tab-"+name).classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "factory-maintenance-backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!imported.devices || !imported.parts || !imported.records) throw new Error();
+      data = imported;
+      save();
+      render();
+      alert("匯入完成");
+    }catch(err){
+      alert("匯入失敗，請確認 JSON 格式是否正確");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function clearAll(){
+  if(!confirm("確定清空全部資料？此動作無法復原。")) return;
+  data = {devices:[],parts:[],records:[]};
+  save();
+  resetDeviceForm();
+  render();
+}
+
+document.getElementById("recordDate").value = today();
+render();
+</script>
+</body>
+</html>
