@@ -250,6 +250,7 @@
 
         <div id="tab-parts" class="hidden">
           <h2>零件管理</h2>
+          <input type="hidden" id="partEditId" />
           <div class="row">
             <div>
               <label>選擇設備</label>
@@ -271,7 +272,8 @@
             </div>
           </div>
           <div class="actions">
-            <button class="primary" onclick="savePart()">新增零件</button>
+            <button class="primary" onclick="savePart()">新增 / 更新零件</button>
+            <button onclick="resetPartForm()">清除</button>
           </div>
           <div id="partList"></div>
         </div>
@@ -409,20 +411,44 @@ function deleteDevice(id){
 }
 
 function savePart(){
+  const editId = document.getElementById("partEditId").value;
   const deviceId = document.getElementById("partDevice").value;
   const name = document.getElementById("partName").value.trim();
   if(!deviceId){ alert("請先新增或選擇設備"); return; }
   if(!name){ alert("請輸入零件名稱"); return; }
-  data.parts.push({
-    id: uid(),
+
+  const item = {
+    id: editId || uid(),
     deviceId,
     name,
     number: document.getElementById("partNumber").value.trim(),
     cycle: Number(document.getElementById("partCycle").value || 0)
-  });
-  ["partName","partNumber","partCycle"].forEach(id => document.getElementById(id).value = "");
+  };
+
+  if(editId){
+    const idx = data.parts.findIndex(x => x.id === editId);
+    if(idx >= 0) data.parts[idx] = item;
+  }else{
+    data.parts.push(item);
+  }
+
+  resetPartForm();
   save();
   render();
+}
+
+function editPart(id){
+  const p = data.parts.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById("partEditId").value = p.id;
+  document.getElementById("partDevice").value = p.deviceId || "";
+  document.getElementById("partName").value = p.name || "";
+  document.getElementById("partNumber").value = p.number || "";
+  document.getElementById("partCycle").value = p.cycle || "";
+}
+
+function resetPartForm(){
+  ["partEditId","partName","partNumber","partCycle"].forEach(id => document.getElementById(id).value = "");
 }
 
 function deletePart(id){
@@ -517,7 +543,10 @@ function renderParts(){
           <td><b>${escapeHtml(p.name)}</b></td>
           <td>${escapeHtml(p.number || "-")}</td>
           <td>${p.cycle ? p.cycle + " 天" : "-"}</td>
-          <td><button class="small danger" onclick="deletePart('${p.id}')">刪除</button></td>
+          <td>
+            <button class="small primary" onclick="editPart('${p.id}')">編輯</button>
+            <button class="small danger" onclick="deletePart('${p.id}')">刪除</button>
+          </td>
         </tr>`).join("")}
       </tbody>
     </table>`;
