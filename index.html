@@ -116,7 +116,7 @@
     }
     th{color:var(--muted);font-weight:700;background:#f9fafb}
     tr:hover td{background:#f9fafb}
-    .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
     .tab{
       background:#e5e7eb;
       color:#374151;
@@ -125,6 +125,9 @@
       background:var(--primary);
       color:#fff;
     }
+    .subtabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .subtab{background:#eef2ff;color:#1e40af}
+    .subtab.active{background:#1e40af;color:#fff}
     .hidden{display:none}
     .badge{
       display:inline-flex;
@@ -156,9 +159,15 @@
     }
     .search{max-width:320px}
     .note{font-size:13px;color:var(--muted);line-height:1.6}
+    .home-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
     @media(max-width:900px){
       .dashboard{grid-template-columns:repeat(2,1fr);margin-top:0}
       .grid{grid-template-columns:1fr}
+      .home-grid{grid-template-columns:1fr}
     }
     @media(max-width:560px){
       .dashboard{grid-template-columns:1fr}
@@ -175,50 +184,30 @@
 </header>
 
 <main>
-  <section class="dashboard">
-    <div class="stat"><div class="label">設備數量</div><div class="num" id="statDevices">0</div></div>
-    <div class="stat"><div class="label">零件數量</div><div class="num" id="statParts">0</div></div>
-    <div class="stat"><div class="label">維護紀錄</div><div class="num" id="statRecords">0</div></div>
-    <div class="stat"><div class="label">即將到期</div><div class="num" id="statDue">0</div></div>
-  </section>
+  <div class="tabs">
+    <button class="tab active" onclick="showMainTab('home', this)">首頁</button>
+    <button class="tab" onclick="showMainTab('devices', this)">設備清單</button>
+    <button class="tab" onclick="showMainTab('records', this)">維護紀錄</button>
+    <button class="tab" onclick="showMainTab('due', this)">保養提醒</button>
+  </div>
 
-  <section class="grid">
-    <div>
+  <section id="page-home">
+    <section class="dashboard">
+      <div class="stat"><div class="label">設備數量</div><div class="num" id="statDevices">0</div></div>
+      <div class="stat"><div class="label">零件數量</div><div class="num" id="statParts">0</div></div>
+      <div class="stat"><div class="label">維護紀錄</div><div class="num" id="statRecords">0</div></div>
+      <div class="stat"><div class="label">即將到期</div><div class="num" id="statDue">0</div></div>
+    </section>
+
+    <section class="home-grid">
       <div class="card">
-        <h2 id="deviceFormTitle">新增設備</h2>
-        <input type="hidden" id="deviceEditId" />
-        <label>設備名稱 *</label>
-        <input id="deviceName" placeholder="例：CNC-01、空壓機 A" />
-        <div class="row">
-          <div>
-            <label>設備編號</label>
-            <input id="deviceCode" placeholder="EQ-001" />
-          </div>
-          <div>
-            <label>位置</label>
-            <input id="deviceLocation" placeholder="一廠 2F" />
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>廠牌</label>
-            <input id="deviceBrand" placeholder="Brand" />
-          </div>
-          <div>
-            <label>型號</label>
-            <input id="deviceModel" placeholder="Model" />
-          </div>
-        </div>
-        <label>序號</label>
-        <input id="deviceSerial" placeholder="Serial Number" />
-        <label>備註</label>
-        <textarea id="deviceNote" placeholder="可記錄用途、注意事項、SOP 位置等"></textarea>
-        <div class="actions">
-          <button class="primary" onclick="saveDevice()">儲存設備</button>
-          <button onclick="resetDeviceForm()">清除</button>
-        </div>
+        <h2>最近維護紀錄</h2>
+        <div id="homeRecentRecords"></div>
       </div>
-
+      <div class="card">
+        <h2>即將到期保養</h2>
+        <div id="homeDueList"></div>
+      </div>
       <div class="card">
         <h2>資料備份</h2>
         <p class="note">可匯出 JSON 備份，也可以匯入到另一台電腦使用。</p>
@@ -229,91 +218,131 @@
           <button class="danger" onclick="clearAll()">清空全部</button>
         </div>
       </div>
+    </section>
+  </section>
+
+  <section id="page-devices" class="hidden">
+    <div class="subtabs">
+      <button class="subtab active" onclick="showDeviceSubTab('device-list', this)">設備清單</button>
+      <button class="subtab" onclick="showDeviceSubTab('device-form', this)">新增 / 編輯設備</button>
+      <button class="subtab" onclick="showDeviceSubTab('part-list', this)">零件管理</button>
     </div>
 
-    <div>
-      <div class="card">
-        <div class="tabs">
-          <button class="tab active" onclick="showTab('devices', this)">設備清單</button>
-          <button class="tab" onclick="showTab('parts', this)">零件管理</button>
-          <button class="tab" onclick="showTab('records', this)">維護紀錄</button>
-          <button class="tab" onclick="showTab('due', this)">保養提醒</button>
-        </div>
+    <div id="device-sub-device-list" class="card">
+      <div class="toolbar">
+        <h2>設備清單</h2>
+        <input class="search" id="deviceSearch" placeholder="搜尋設備名稱、編號、位置" oninput="render()">
+      </div>
+      <div id="deviceList"></div>
+    </div>
 
-        <div id="tab-devices">
-          <div class="toolbar">
-            <h2>設備清單</h2>
-            <input class="search" id="deviceSearch" placeholder="搜尋設備名稱、編號、位置" oninput="render()">
-          </div>
-          <div id="deviceList"></div>
+    <div id="device-sub-device-form" class="card hidden">
+      <h2 id="deviceFormTitle">新增設備</h2>
+      <input type="hidden" id="deviceEditId" />
+      <label>設備名稱 *</label>
+      <input id="deviceName" placeholder="例：CNC-01、空壓機 A" />
+      <div class="row">
+        <div>
+          <label>設備編號</label>
+          <input id="deviceCode" placeholder="EQ-001" />
         </div>
-
-        <div id="tab-parts" class="hidden">
-          <h2>零件管理</h2>
-          <input type="hidden" id="partEditId" />
-          <div class="row">
-            <div>
-              <label>選擇設備</label>
-              <select id="partDevice"></select>
-            </div>
-            <div>
-              <label>零件名稱 *</label>
-              <input id="partName" placeholder="例：皮帶、濾芯、馬達" />
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label>Part Number</label>
-              <input id="partNumber" placeholder="PN-1234" />
-            </div>
-            <div>
-              <label>保養週期（天）</label>
-              <input id="partCycle" type="number" min="0" placeholder="例：90" />
-            </div>
-          </div>
-          <div class="actions">
-            <button class="primary" onclick="savePart()">新增 / 更新零件</button>
-            <button onclick="resetPartForm()">清除</button>
-          </div>
-          <div id="partList"></div>
-        </div>
-
-        <div id="tab-records" class="hidden">
-          <h2>維護紀錄</h2>
-          <div class="row">
-            <div>
-              <label>設備</label>
-              <select id="recordDevice" onchange="refreshRecordParts()"></select>
-            </div>
-            <div>
-              <label>零件</label>
-              <select id="recordPart"></select>
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label>維護日期</label>
-              <input id="recordDate" type="date" />
-            </div>
-            <div>
-              <label>維護人員</label>
-              <input id="recordOwner" placeholder="姓名" />
-            </div>
-          </div>
-          <label>維護內容 *</label>
-          <textarea id="recordDesc" placeholder="例：更換濾芯、檢查皮帶張力、清潔感測器"></textarea>
-          <div class="actions">
-            <button class="primary" onclick="saveRecord()">新增紀錄</button>
-          </div>
-          <div id="recordList"></div>
-        </div>
-
-        <div id="tab-due" class="hidden">
-          <h2>保養提醒</h2>
-          <p class="note">依照零件的「保養週期」與最後一次維護日期計算。30 天內到期會顯示提醒。</p>
-          <div id="dueList"></div>
+        <div>
+          <label>位置</label>
+          <input id="deviceLocation" placeholder="一廠 2F" />
         </div>
       </div>
+      <div class="row">
+        <div>
+          <label>廠牌</label>
+          <input id="deviceBrand" placeholder="Brand" />
+        </div>
+        <div>
+          <label>型號</label>
+          <input id="deviceModel" placeholder="Model" />
+        </div>
+      </div>
+      <label>序號</label>
+      <input id="deviceSerial" placeholder="Serial Number" />
+      <label>備註</label>
+      <textarea id="deviceNote" placeholder="可記錄用途、注意事項、SOP 位置等"></textarea>
+      <div class="actions">
+        <button class="primary" onclick="saveDevice()">儲存設備</button>
+        <button onclick="resetDeviceForm()">清除</button>
+      </div>
+    </div>
+
+    <div id="device-sub-part-list" class="card hidden">
+      <h2>零件管理</h2>
+      <input type="hidden" id="partEditId" />
+      <div class="row">
+        <div>
+          <label>選擇設備</label>
+          <select id="partDevice"></select>
+        </div>
+        <div>
+          <label>零件名稱 *</label>
+          <input id="partName" placeholder="例：皮帶、濾芯、馬達" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Part Number</label>
+          <input id="partNumber" placeholder="PN-1234" />
+        </div>
+        <div>
+          <label>保養週期（天）</label>
+          <input id="partCycle" type="number" min="0" placeholder="例：90" />
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" onclick="savePart()">新增 / 更新零件</button>
+        <button onclick="resetPartForm()">清除</button>
+      </div>
+      <div id="partList"></div>
+    </div>
+  </section>
+
+  <section id="page-records" class="hidden">
+    <div class="card">
+      <h2>新增維護紀錄</h2>
+      <div class="row">
+        <div>
+          <label>設備</label>
+          <select id="recordDevice" onchange="refreshRecordParts()"></select>
+        </div>
+        <div>
+          <label>零件</label>
+          <select id="recordPart"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>維護日期</label>
+          <input id="recordDate" type="date" />
+        </div>
+        <div>
+          <label>維護人員</label>
+          <input id="recordOwner" placeholder="姓名" />
+        </div>
+      </div>
+      <label>維護內容 *</label>
+      <textarea id="recordDesc" placeholder="例：更換濾芯、檢查皮帶張力、清潔感測器"></textarea>
+      <div class="actions">
+        <button class="primary" onclick="saveRecord()">新增紀錄</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>維護紀錄</h2>
+      <div id="recordList"></div>
+    </div>
+  </section>
+
+  <section id="page-due" class="hidden">
+    <div class="card">
+      <h2>保養提醒</h2>
+      <p class="note">依照零件的「保養週期」與最後一次維護日期計算。30 天內到期會顯示提醒。</p>
+      <div id="dueList"></div>
     </div>
   </section>
 </main>
@@ -378,11 +407,14 @@ function saveDevice(){
   resetDeviceForm();
   save();
   render();
+  showDeviceSubTab("device-list");
 }
 
 function editDevice(id){
   const d = data.devices.find(x => x.id === id);
   if(!d) return;
+  showMainTab("devices");
+  showDeviceSubTab("device-form");
   document.getElementById("deviceFormTitle").textContent = "編輯設備";
   document.getElementById("deviceEditId").value = d.id;
   document.getElementById("deviceName").value = d.name || "";
@@ -440,6 +472,8 @@ function savePart(){
 function editPart(id){
   const p = data.parts.find(x => x.id === id);
   if(!p) return;
+  showMainTab("devices");
+  showDeviceSubTab("part-list");
   document.getElementById("partEditId").value = p.id;
   document.getElementById("partDevice").value = p.deviceId || "";
   document.getElementById("partName").value = p.name || "";
@@ -554,12 +588,12 @@ function renderParts(){
 
 function renderRecords(){
   if(!data.records.length){
-    document.getElementById("recordList").innerHTML = '<div class="empty" style="margin-top:14px">目前沒有維護紀錄</div>';
+    document.getElementById("recordList").innerHTML = '<div class="empty">目前沒有維護紀錄</div>';
     return;
   }
   const sorted = [...data.records].sort((a,b) => (b.date || "").localeCompare(a.date || ""));
   document.getElementById("recordList").innerHTML = `
-    <table style="margin-top:14px">
+    <table>
       <thead><tr><th>日期</th><th>設備 / 零件</th><th>內容</th><th>人員</th><th>操作</th></tr></thead>
       <tbody>
       ${sorted.map(r => `
@@ -593,7 +627,11 @@ function renderDue(){
     document.getElementById("dueList").innerHTML = '<div class="empty">目前沒有 30 天內到期的保養項目</div>';
     return;
   }
-  document.getElementById("dueList").innerHTML = `
+  document.getElementById("dueList").innerHTML = dueTable(items);
+}
+
+function dueTable(items){
+  return `
     <table>
       <thead><tr><th>狀態</th><th>設備</th><th>零件</th><th>最後維護</th><th>下次保養</th></tr></thead>
       <tbody>
@@ -621,6 +659,25 @@ function renderStats(){
   document.getElementById("statDue").textContent = getDueItems().length;
 }
 
+function renderHome(){
+  const recent = [...data.records].sort((a,b) => (b.date || "").localeCompare(a.date || "")).slice(0,5);
+  document.getElementById("homeRecentRecords").innerHTML = recent.length ? `
+    <table>
+      <thead><tr><th>日期</th><th>設備 / 零件</th><th>內容</th></tr></thead>
+      <tbody>
+      ${recent.map(r => `
+        <tr>
+          <td>${escapeHtml(r.date || "-")}</td>
+          <td><b>${escapeHtml(deviceName(r.deviceId))}</b><br><span class="note">${escapeHtml(r.partId ? partName(r.partId) : "未指定零件")}</span></td>
+          <td>${escapeHtml(r.desc)}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>` : '<div class="empty">目前沒有維護紀錄</div>';
+
+  const due = getDueItems().slice(0,5);
+  document.getElementById("homeDueList").innerHTML = due.length ? dueTable(due) : '<div class="empty">目前沒有 30 天內到期的保養項目</div>';
+}
+
 function render(){
   save();
   renderStats();
@@ -629,13 +686,32 @@ function render(){
   renderParts();
   renderRecords();
   renderDue();
+  renderHome();
 }
 
-function showTab(name, btn){
-  ["devices","parts","records","due"].forEach(t => document.getElementById("tab-"+t).classList.add("hidden"));
-  document.getElementById("tab-"+name).classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-  btn.classList.add("active");
+function showMainTab(name, btn){
+  ["home","devices","records","due"].forEach(t => document.getElementById("page-"+t).classList.add("hidden"));
+  document.getElementById("page-"+name).classList.remove("hidden");
+  document.querySelectorAll("main > .tabs .tab").forEach(x => x.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+  else {
+    const buttons = document.querySelectorAll("main > .tabs .tab");
+    const map = {home:0,devices:1,records:2,due:3};
+    buttons[map[name]].classList.add("active");
+  }
+  render();
+}
+
+function showDeviceSubTab(name, btn){
+  ["device-list","device-form","part-list"].forEach(t => document.getElementById("device-sub-"+t).classList.add("hidden"));
+  document.getElementById("device-sub-"+name).classList.remove("hidden");
+  document.querySelectorAll(".subtab").forEach(x => x.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+  else {
+    const buttons = document.querySelectorAll(".subtab");
+    const map = {"device-list":0,"device-form":1,"part-list":2};
+    buttons[map[name]].classList.add("active");
+  }
   render();
 }
 
@@ -673,6 +749,7 @@ function clearAll(){
   data = {devices:[],parts:[],records:[]};
   save();
   resetDeviceForm();
+  resetPartForm();
   render();
 }
 
