@@ -20,9 +20,45 @@
 <script>
 const STORAGE_KEY="factoryMaintenanceDataV2";let data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"devices":[],"parts":[],"records":[]}');let selectedDeviceId="";
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function today(){return new Date().toISOString().slice(0,10)}function addDays(d,n){const x=new Date(d+"T00:00:00");x.setDate(x.getDate()+Number(n||0));return x.toISOString().slice(0,10)}function diffDays(d){return Math.ceil((new Date(d+"T00:00:00")-new Date(today()+"T00:00:00"))/86400000)}function deviceName(id){return data.devices.find(x=>x.id===id)?.name||"未指定設備"}function partName(id){return data.parts.find(x=>x.id===id)?.name||"未指定零件"}
-function saveDevice(){const id=deviceEditId.value,name=deviceNameInput().trim();if(!name){alert("請輸入設備名稱");return}const item={id:id||uid(),name,code:deviceCode.value.trim(),location:deviceLocation.value.trim(),brand:deviceBrand.value.trim(),model:deviceModel.value.trim(),serial:deviceSerial.value.trim(),note:deviceNote.value.trim()};if(id){const i=data.devices.findIndex(x=>x.id===id);if(i>=0)data.devices[i]=item}else data.devices.push(item);resetDeviceForm();save();render();showDeviceSubTab("device-list")}function deviceNameInput(){return document.getElementById("deviceName").value}
-function resetDeviceForm(){deviceFormTitle.textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>document.getElementById(id).value="")}
-function editDevice(id){const d=data.devices.find(x=>x.id===id);if(!d)return;showMainTab("devices");showDeviceSubTab("device-form");deviceFormTitle.textContent="編輯設備";deviceEditId.value=d.id;deviceName.value=d.name||"";deviceCode.value=d.code||"";deviceLocation.value=d.location||"";deviceBrand.value=d.brand||"";deviceModel.value=d.model||"";deviceSerial.value=d.serial||"";deviceNote.value=d.note||"";window.scrollTo({top:0,behavior:"smooth"})}
+function getEl(id){return document.getElementById(id)}
+function saveDevice(){
+  const id=getEl("deviceEditId").value;
+  const name=getEl("deviceName").value.trim();
+  if(!name){alert("請輸入設備名稱");return}
+  const item={
+    id:id||uid(),
+    name,
+    code:getEl("deviceCode").value.trim(),
+    location:getEl("deviceLocation").value.trim(),
+    brand:getEl("deviceBrand").value.trim(),
+    model:getEl("deviceModel").value.trim(),
+    serial:getEl("deviceSerial").value.trim(),
+    note:getEl("deviceNote").value.trim()
+  };
+  if(id){
+    const i=data.devices.findIndex(x=>x.id===id);
+    if(i>=0)data.devices[i]=item
+  }else data.devices.push(item);
+  selectedDeviceId=item.id;
+  resetDeviceForm();save();render();openDeviceParts(item.id)
+}
+function resetDeviceForm(){getEl("deviceFormTitle").textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>getEl(id).value="")}
+function editDevice(id){
+  const d=data.devices.find(x=>x.id===id);
+  if(!d)return;
+  showMainTab("devices");
+  showDeviceSubTab("device-form");
+  getEl("deviceFormTitle").textContent="編輯設備";
+  getEl("deviceEditId").value=d.id||"";
+  getEl("deviceName").value=d.name||"";
+  getEl("deviceCode").value=d.code||"";
+  getEl("deviceLocation").value=d.location||"";
+  getEl("deviceBrand").value=d.brand||"";
+  getEl("deviceModel").value=d.model||"";
+  getEl("deviceSerial").value=d.serial||"";
+  getEl("deviceNote").value=d.note||"";
+  window.scrollTo({top:0,behavior:"smooth"})
+}
 function editSelectedDevice(){const id=selectedDeviceId||partDevice.value;if(!id){alert("請先選擇設備");return}editDevice(id)}
 function deleteDevice(id,event){if(event)event.stopPropagation();if(!confirm("確定刪除此設備？相關零件與維護紀錄也會刪除。"))return;data.devices=data.devices.filter(x=>x.id!==id);const partIds=data.parts.filter(p=>p.deviceId===id).map(p=>p.id);data.parts=data.parts.filter(p=>p.deviceId!==id);data.records=data.records.filter(r=>r.deviceId!==id&&!partIds.includes(r.partId));if(selectedDeviceId===id)selectedDeviceId="";save();render()}
 function openDeviceParts(id){selectedDeviceId=id;showMainTab("devices");showDeviceSubTab("part-list");partDevice.value=id;render()}
