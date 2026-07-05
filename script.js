@@ -1,12 +1,32 @@
 const STORAGE_KEY="factoryMaintenanceDataV2";let data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"devices":[],"parts":[],"records":[]}');let selectedDeviceId="";
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function today(){return new Date().toISOString().slice(0,10)}function addDays(d,n){const x=new Date(d+"T00:00:00");x.setDate(x.getDate()+Number(n||0));return x.toISOString().slice(0,10)}function diffDays(d){return Math.ceil((new Date(d+"T00:00:00")-new Date(today()+"T00:00:00"))/86400000)}function deviceName(id){return data.devices.find(x=>x.id===id)?.name||"未指定設備"}function partName(id){return data.parts.find(x=>x.id===id)?.name||"未指定零件"}
 function getEl(id){return document.getElementById(id)}
+function nextDeviceCode(){
+  const nums=data.devices.map(d=>{
+    const m=String(d.uniqueCode||"").match(/^EQ(\d+)$/);
+    return m?Number(m[1]):0
+  });
+  const next=(Math.max(0,...nums)+1).toString().padStart(6,"0");
+  return "EQ"+next
+}
+function migrateDeviceUniqueCodes(){
+  let changed=false;
+  data.devices.forEach((d,idx)=>{
+    if(!d.uniqueCode){
+      d.uniqueCode="EQ"+String(idx+1).padStart(6,"0");
+      changed=true
+    }
+  });
+  if(changed)save()
+}
 function saveDevice(){
   const id=getEl("deviceEditId").value;
   const name=getEl("deviceName").value.trim();
   if(!name){alert("請輸入設備名稱");return}
+  const oldItem=id?data.devices.find(x=>x.id===id):null;
   const item={
     id:id||uid(),
+    uniqueCode:oldItem?.uniqueCode||getEl("deviceUniqueCode").value||nextDeviceCode(),
     name,
     code:getEl("deviceCode").value.trim(),
     location:getEl("deviceLocation").value.trim(),
@@ -22,7 +42,7 @@ function saveDevice(){
   selectedDeviceId=item.id;
   resetDeviceForm();save();render();openDeviceParts(item.id)
 }
-function resetDeviceForm(){getEl("deviceFormTitle").textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>getEl(id).value="")}
+function resetDeviceForm(){getEl("deviceFormTitle").textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>getEl(id).value="");getEl("deviceUniqueCode").value=nextDeviceCode()}
 function editDevice(id){
   const d=data.devices.find(x=>x.id===id);
   if(!d)return;
@@ -30,6 +50,7 @@ function editDevice(id){
   showDeviceSubTab("device-form");
   getEl("deviceFormTitle").textContent="編輯設備";
   getEl("deviceEditId").value=d.id||"";
+  getEl("deviceUniqueCode").value=d.uniqueCode||d.id||"";
   getEl("deviceName").value=d.name||"";
   getEl("deviceCode").value=d.code||"";
   getEl("deviceLocation").value=d.location||"";
@@ -50,20 +71,22 @@ function saveRecord(){const deviceId=recordDevice.value,partId=recordPart.value,
 function refreshSelects(){const opts=data.devices.map(d=>`<option value="${d.id}">${esc(d.name)}${d.code?" / "+esc(d.code):""}</option>`).join("");partDevice.innerHTML=opts||'<option value="">尚無設備</option>';recordDevice.innerHTML=opts||'<option value="">尚無設備</option>';if(selectedDeviceId&&data.devices.some(d=>d.id===selectedDeviceId))partDevice.value=selectedDeviceId;refreshRecordParts()}function refreshRecordParts(){const id=recordDevice.value;const ps=data.parts.filter(p=>p.deviceId===id);recordPart.innerHTML='<option value="">不指定零件</option>'+ps.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}
 function renderDevices(){
   const q=(deviceSearch?.value||"").toLowerCase();
-  const list=data.devices.filter(d=>[d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));
+  const list=data.devices.filter(d=>[d.uniqueCode,d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));
   if(!list.length){
     deviceList.innerHTML='<div class="empty">目前沒有設備資料</div>';
     return
   }
   deviceList.innerHTML=`<div class="device-card-list">${list.map(d=>{
+    const unique=esc(d.uniqueCode||d.id||"-");
     const modelText=esc([d.brand,d.model].filter(Boolean).join(" ")||"-");
     const serialText=esc(d.serial||"-");
     const partCount=data.parts.filter(p=>p.deviceId===d.id).length;
     return `<article class="device-card-item" onclick="openDeviceParts('${d.id}')">
       <div class="device-card-head">
         <div>
+          <div class="device-uid">${unique}</div>
           <div class="device-card-title">${esc(d.name)}</div>
-          <div class="device-card-code">${esc(d.code||"未設定編號")}</div>
+          <div class="device-card-code">設備編號：${esc(d.code||"未設定")}</div>
         </div>
         <span class="device-card-count">${partCount} 個零件</span>
       </div>
@@ -86,4 +109,4 @@ function renderStats(){statDevices.textContent=data.devices.length;statParts.tex
 function render(){save();renderStats();refreshSelects();renderDevices();renderParts();renderRecords();renderDue();renderHome()}
 function showMainTab(name,btn){["home","devices","records","due"].forEach(t=>document.getElementById("page-"+t).classList.add("hidden"));document.getElementById("page-"+name).classList.remove("hidden");document.querySelectorAll("main > .tabs .tab").forEach(x=>x.classList.remove("active"));const map={home:0,devices:1,records:2,due:3};(btn||document.querySelectorAll("main > .tabs .tab")[map[name]]).classList.add("active");render()}function showDeviceSubTab(name,btn){["device-list","device-form","part-list"].forEach(t=>document.getElementById("device-sub-"+t).classList.add("hidden"));document.getElementById("device-sub-"+name).classList.remove("hidden");document.querySelectorAll(".subtab").forEach(x=>x.classList.remove("active"));const map={"device-list":0,"device-form":1,"part-list":2};(btn||document.querySelectorAll(".subtab")[map[name]]).classList.add("active");render()}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="factory-maintenance-backup.json";a.click();URL.revokeObjectURL(a.href)}function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=x=>{try{const imported=JSON.parse(x.target.result);if(!imported.devices||!imported.parts||!imported.records)throw new Error();data=imported;save();render();alert("匯入完成")}catch(err){alert("匯入失敗，請確認 JSON 格式是否正確")}};reader.readAsText(file);e.target.value=""}function clearAll(){if(!confirm("確定清空全部資料？此動作無法復原。"))return;data={devices:[],parts:[],records:[]};selectedDeviceId="";save();resetDeviceForm();resetPartForm();render()}
-recordDate.value=today();render();
+migrateDeviceUniqueCodes();recordDate.value=today();resetDeviceForm();render();
