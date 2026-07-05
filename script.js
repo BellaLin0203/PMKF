@@ -48,7 +48,36 @@ function editPart(id){const p=data.parts.find(x=>x.id===id);if(!p)return;selecte
 function deletePart(id){if(!confirm("確定刪除此零件？相關維護紀錄也會刪除。"))return;data.parts=data.parts.filter(x=>x.id!==id);data.records=data.records.filter(x=>x.partId!==id);save();render()}
 function saveRecord(){const deviceId=recordDevice.value,partId=recordPart.value,desc=recordDesc.value.trim();if(!deviceId){alert("請先選擇設備");return}if(!desc){alert("請輸入維護內容");return}data.records.push({id:uid(),deviceId,partId,date:recordDate.value||today(),owner:recordOwner.value.trim(),desc});recordDate.value=today();recordOwner.value="";recordDesc.value="";save();render()}function deleteRecord(id){if(!confirm("確定刪除此維護紀錄？"))return;data.records=data.records.filter(x=>x.id!==id);save();render()}
 function refreshSelects(){const opts=data.devices.map(d=>`<option value="${d.id}">${esc(d.name)}${d.code?" / "+esc(d.code):""}</option>`).join("");partDevice.innerHTML=opts||'<option value="">尚無設備</option>';recordDevice.innerHTML=opts||'<option value="">尚無設備</option>';if(selectedDeviceId&&data.devices.some(d=>d.id===selectedDeviceId))partDevice.value=selectedDeviceId;refreshRecordParts()}function refreshRecordParts(){const id=recordDevice.value;const ps=data.parts.filter(p=>p.deviceId===id);recordPart.innerHTML='<option value="">不指定零件</option>'+ps.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}
-function renderDevices(){const q=(deviceSearch?.value||"").toLowerCase();const list=data.devices.filter(d=>[d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));if(!list.length){deviceList.innerHTML='<div class="empty">目前沒有設備資料</div>';return}deviceList.innerHTML=`<table><thead><tr><th>設備</th><th>位置</th><th>型號 / 序號</th><th>零件</th><th>操作</th></tr></thead><tbody>${list.map(d=>`<tr class="clickable-row" onclick="openDeviceParts('${d.id}')"><td><b>${esc(d.name)}</b><br><span class="note">${esc(d.code||"-")}</span></td><td>${esc(d.location||"-")}</td><td>${esc([d.brand,d.model].filter(Boolean).join(" ")||"-")}<br><span class="note">${esc(d.serial||"")}</span></td><td>${data.parts.filter(p=>p.deviceId===d.id).length}</td><td><button class="small danger" onclick="deleteDevice('${d.id}',event)">刪除</button></td></tr>`).join("")}</tbody></table>`}
+function renderDevices(){
+  const q=(deviceSearch?.value||"").toLowerCase();
+  const list=data.devices.filter(d=>[d.name,d.code,d.location,d.brand,d.model,d.serial].join(" ").toLowerCase().includes(q));
+  if(!list.length){
+    deviceList.innerHTML='<div class="empty">目前沒有設備資料</div>';
+    return
+  }
+  deviceList.innerHTML=`<div class="device-card-list">${list.map(d=>{
+    const modelText=esc([d.brand,d.model].filter(Boolean).join(" ")||"-");
+    const serialText=esc(d.serial||"-");
+    const partCount=data.parts.filter(p=>p.deviceId===d.id).length;
+    return `<article class="device-card-item" onclick="openDeviceParts('${d.id}')">
+      <div class="device-card-head">
+        <div>
+          <div class="device-card-title">${esc(d.name)}</div>
+          <div class="device-card-code">${esc(d.code||"未設定編號")}</div>
+        </div>
+        <span class="device-card-count">${partCount} 個零件</span>
+      </div>
+      <div class="device-card-info">
+        <div class="info-row"><span>位置</span><strong>${esc(d.location||"-")}</strong></div>
+        <div class="info-row"><span>型號</span><strong>${modelText}</strong></div>
+        <div class="info-row"><span>序號</span><strong>${serialText}</strong></div>
+      </div>
+      <div class="device-card-actions">
+        <button class="small danger" onclick="deleteDevice('${d.id}',event)">刪除</button>
+      </div>
+    </article>`
+  }).join("")}</div>`
+}
 function renderPartTitle(){const d=data.devices.find(x=>x.id===selectedDeviceId);selectedDeviceTitle.textContent=d?`${d.name} 的零件清單`:"零件管理"}
 function renderParts(){renderPartTitle();const current=selectedDeviceId||partDevice.value;const list=current?data.parts.filter(p=>p.deviceId===current):data.parts;if(!list.length){partList.innerHTML='<div class="empty" style="margin-top:14px">目前沒有零件資料</div>';return}partList.innerHTML=`<table style="margin-top:14px"><thead><tr><th>設備</th><th>零件</th><th>Part Number</th><th>週期</th><th>操作</th></tr></thead><tbody>${list.map(p=>`<tr><td>${esc(deviceName(p.deviceId))}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.number||"-")}</td><td>${p.cycle?p.cycle+" 天":"-"}</td><td><button class="small primary" onclick="editPart('${p.id}')">編輯</button> <button class="small danger" onclick="deletePart('${p.id}')">刪除</button></td></tr>`).join("")}</tbody></table>`}
 function renderRecords(){if(!data.records.length){recordList.innerHTML='<div class="empty">目前沒有維護紀錄</div>';return}const s=[...data.records].sort((a,b)=>(b.date||"").localeCompare(a.date||""));recordList.innerHTML=recordsTable(s,true)}function recordsTable(list,ops){return`<table><thead><tr><th>日期</th><th>設備 / 零件</th><th>內容</th><th>人員</th>${ops?"<th>操作</th>":""}</tr></thead><tbody>${list.map(r=>`<tr><td>${esc(r.date||"-")}</td><td><b>${esc(deviceName(r.deviceId))}</b><br><span class="note">${esc(r.partId?partName(r.partId):"未指定零件")}</span></td><td>${esc(r.desc)}</td><td>${esc(r.owner||"-")}</td>${ops?`<td><button class="small danger" onclick="deleteRecord('${r.id}')">刪除</button></td>`:""}</tr>`).join("")}</tbody></table>`}
