@@ -40,7 +40,7 @@ function saveDevice(){
     if(i>=0)data.devices[i]=item
   }else data.devices.push(item);
   selectedDeviceId=item.id;
-  resetDeviceForm();save();render();openDeviceParts(item.id)
+  const wasEdit=!!id;resetDeviceForm();save();render();if(wasEdit){openDeviceParts(item.id)}else{showDeviceSubTab('device-list')}
 }
 function resetDeviceForm(){getEl("deviceFormTitle").textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>getEl(id).value="");getEl("deviceUniqueCode").value=nextDeviceCode()}
 function editDevice(id){
@@ -115,20 +115,3 @@ function render(){save();renderStats();refreshSelects();renderDevices();renderPa
 function showMainTab(name,btn){["home","devices","records","due"].forEach(t=>document.getElementById("page-"+t).classList.add("hidden"));document.getElementById("page-"+name).classList.remove("hidden");document.querySelectorAll("main > .tabs .tab").forEach(x=>x.classList.remove("active"));const map={home:0,devices:1,records:2,due:3};(btn||document.querySelectorAll("main > .tabs .tab")[map[name]]).classList.add("active");render()}function showDeviceSubTab(name,btn){["device-list","device-form","part-list"].forEach(t=>document.getElementById("device-sub-"+t).classList.add("hidden"));document.getElementById("device-sub-"+name).classList.remove("hidden");document.querySelectorAll(".subtab").forEach(x=>x.classList.remove("active"));const map={"device-list":0,"device-form":1,"part-list":2};(btn||document.querySelectorAll(".subtab")[map[name]]).classList.add("active");render()}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="factory-maintenance-backup.json";a.click();URL.revokeObjectURL(a.href)}function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=x=>{try{const imported=JSON.parse(x.target.result);if(!imported.devices||!imported.parts||!imported.records)throw new Error();data=imported;save();render();alert("匯入完成")}catch(err){alert("匯入失敗，請確認 JSON 格式是否正確")}};reader.readAsText(file);e.target.value=""}function clearAll(){if(!confirm("確定清空全部資料？此動作無法復原。"))return;data={devices:[],parts:[],records:[]};selectedDeviceId="";save();resetDeviceForm();resetPartForm();render()}
 migrateDeviceUniqueCodes();recordDate.value=today();resetDeviceForm();render();
-function newDevice(){
- resetDeviceForm();
- showMainTab("devices");
- showDeviceSubTab("device-form");
- document.getElementById("editDeviceTab").classList.add("hidden");
-}
-const _editDevice=editDevice;
-editDevice=function(id){
- document.getElementById("editDeviceTab").classList.remove("hidden");
- _editDevice(id);
-}
-const _saveDevice=saveDevice;
-saveDevice=function(){
- _saveDevice();
- document.getElementById("editDeviceTab").classList.add("hidden");
- showDeviceSubTab("device-list");
-}
