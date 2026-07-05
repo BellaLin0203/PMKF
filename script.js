@@ -40,14 +40,20 @@ function saveDevice(){
     if(i>=0)data.devices[i]=item
   }else data.devices.push(item);
   selectedDeviceId=item.id;
-  const wasEdit=!!id;resetDeviceForm();save();render();if(wasEdit){openDeviceParts(item.id)}else{showDeviceSubTab('device-list')}
+  closeDeviceDialog();
+  resetDeviceForm();
+  save();
+  render();
 }
 function resetDeviceForm(){getEl("deviceFormTitle").textContent="新增設備";["deviceEditId","deviceName","deviceCode","deviceLocation","deviceBrand","deviceModel","deviceSerial","deviceNote"].forEach(id=>getEl(id).value="");getEl("deviceUniqueCode").value=nextDeviceCode()}
+function openDeviceDialog(){getEl("deviceModal").classList.remove("hidden");document.body.classList.add("modal-open");setTimeout(()=>getEl("deviceName")?.focus(),0)}
+function closeDeviceDialog(){getEl("deviceModal")?.classList.add("hidden");document.body.classList.remove("modal-open")}
+function openNewDeviceDialog(){resetDeviceForm();openDeviceDialog()}
 function editDevice(id){
   const d=data.devices.find(x=>x.id===id);
   if(!d)return;
   showMainTab("devices");
-  showDeviceSubTab("device-form");
+  openDeviceDialog();
   getEl("deviceFormTitle").textContent="編輯設備";
   getEl("deviceEditId").value=d.id||"";
   getEl("deviceUniqueCode").value=d.uniqueCode||d.id||"";
@@ -58,8 +64,8 @@ function editDevice(id){
   getEl("deviceModel").value=d.model||"";
   getEl("deviceSerial").value=d.serial||"";
   getEl("deviceNote").value=d.note||"";
-  window.scrollTo({top:0,behavior:"smooth"})
 }
+
 function editSelectedDevice(){const id=selectedDeviceId||partDevice.value;if(!id){alert("請先選擇設備");return}editDevice(id)}
 function deleteDevice(id,event){if(event)event.stopPropagation();if(!confirm("確定刪除此設備？相關零件與維護紀錄也會刪除。"))return;data.devices=data.devices.filter(x=>x.id!==id);const partIds=data.parts.filter(p=>p.deviceId===id).map(p=>p.id);data.parts=data.parts.filter(p=>p.deviceId!==id);data.records=data.records.filter(r=>r.deviceId!==id&&!partIds.includes(r.partId));if(selectedDeviceId===id)selectedDeviceId="";save();render()}
 function openDeviceParts(id){selectedDeviceId=id;showMainTab("devices");showDeviceSubTab("part-list");partDevice.value=id;render()}
@@ -112,6 +118,8 @@ function renderRecords(){if(!data.records.length){recordList.innerHTML='<div cla
 function getDueItems(){return data.parts.filter(p=>p.cycle>0).map(p=>{const rs=data.records.filter(r=>r.partId===p.id).sort((a,b)=>(b.date||"").localeCompare(a.date||""));const lastDate=rs[0]?.date||"",nextDate=lastDate?addDays(lastDate,p.cycle):"",remain=nextDate?diffDays(nextDate):null;return{...p,lastDate,nextDate,remain}}).filter(x=>x.remain===null||x.remain<=30).sort((a,b)=>(a.remain??-9999)-(b.remain??-9999))}function dueTable(items){return`<table><thead><tr><th>狀態</th><th>設備</th><th>零件</th><th>最後維護</th><th>下次保養</th></tr></thead><tbody>${items.map(p=>{let b='<span class="badge due">未維護</span>';if(p.remain!==null&&p.remain<0)b=`<span class="badge overdue">逾期 ${Math.abs(p.remain)} 天</span>`;else if(p.remain!==null)b=`<span class="badge due">剩 ${p.remain} 天</span>`;return`<tr><td>${b}</td><td>${esc(deviceName(p.deviceId))}</td><td><b>${esc(p.name)}</b><br><span class="note">${esc(p.number||"")}</span></td><td>${esc(p.lastDate||"尚無紀錄")}</td><td>${esc(p.nextDate||"請新增維護紀錄")}</td></tr>`}).join("")}</tbody></table>`}function renderDue(){const items=getDueItems();dueList.innerHTML=items.length?dueTable(items):'<div class="empty">目前沒有 30 天內到期的保養項目</div>'}
 function renderStats(){statDevices.textContent=data.devices.length;statParts.textContent=data.parts.length;statRecords.textContent=data.records.length;statDue.textContent=getDueItems().length}function renderHome(){const recent=[...data.records].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,5);homeRecentRecords.innerHTML=recent.length?recordsTable(recent,false):'<div class="empty">目前沒有維護紀錄</div>';const due=getDueItems().slice(0,5);homeDueList.innerHTML=due.length?dueTable(due):'<div class="empty">目前沒有 30 天內到期的保養項目</div>'}
 function render(){save();renderStats();refreshSelects();renderDevices();renderParts();renderRecords();renderDue();renderHome()}
-function showMainTab(name,btn){["home","devices","records","due"].forEach(t=>document.getElementById("page-"+t).classList.add("hidden"));document.getElementById("page-"+name).classList.remove("hidden");document.querySelectorAll("main > .tabs .tab").forEach(x=>x.classList.remove("active"));const map={home:0,devices:1,records:2,due:3};(btn||document.querySelectorAll("main > .tabs .tab")[map[name]]).classList.add("active");render()}function showDeviceSubTab(name,btn){["device-list","device-form","part-list"].forEach(t=>document.getElementById("device-sub-"+t).classList.add("hidden"));document.getElementById("device-sub-"+name).classList.remove("hidden");document.querySelectorAll(".subtab").forEach(x=>x.classList.remove("active"));const map={"device-list":0,"device-form":1,"part-list":2};(btn||document.querySelectorAll(".subtab")[map[name]]).classList.add("active");render()}
+function showMainTab(name,btn){["home","devices","records","due"].forEach(t=>document.getElementById("page-"+t).classList.add("hidden"));document.getElementById("page-"+name).classList.remove("hidden");document.querySelectorAll("main > .tabs .tab").forEach(x=>x.classList.remove("active"));const map={home:0,devices:1,records:2,due:3};(btn||document.querySelectorAll("main > .tabs .tab")[map[name]]).classList.add("active");render()}function showDeviceSubTab(name,btn){["device-list","part-list"].forEach(t=>document.getElementById("device-sub-"+t).classList.add("hidden"));document.getElementById("device-sub-"+name).classList.remove("hidden");document.querySelectorAll(".subtab").forEach(x=>x.classList.remove("active"));const map={"device-list":0,"part-list":1};(btn||document.querySelectorAll(".subtab")[map[name]]).classList.add("active");render()}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="factory-maintenance-backup.json";a.click();URL.revokeObjectURL(a.href)}function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=x=>{try{const imported=JSON.parse(x.target.result);if(!imported.devices||!imported.parts||!imported.records)throw new Error();data=imported;save();render();alert("匯入完成")}catch(err){alert("匯入失敗，請確認 JSON 格式是否正確")}};reader.readAsText(file);e.target.value=""}function clearAll(){if(!confirm("確定清空全部資料？此動作無法復原。"))return;data={devices:[],parts:[],records:[]};selectedDeviceId="";save();resetDeviceForm();resetPartForm();render()}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDeviceDialog()});
+getEl("deviceModal")?.addEventListener("click",e=>{if(e.target.id==="deviceModal")closeDeviceDialog()});
 migrateDeviceUniqueCodes();recordDate.value=today();resetDeviceForm();render();
