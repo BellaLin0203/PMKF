@@ -292,3 +292,30 @@ button.small{
 .search-box .search{max-width:none;width:100%;padding-right:42px}
 .search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;min-height:30px;height:30px;border-radius:999px;padding:0;background:#e5e7eb;color:#6b7280;font-size:18px}
 .search-clear:hover{background:#d1d5db}
+
+
+/* Search clear button should not inherit global button styles */
+.search-wrap{position:relative;display:inline-block;width:100%;max-width:320px}
+.search-wrap .search{max-width:none;width:100%;padding-right:40px}
+.search-clear{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:22px;
+  height:22px;
+  min-height:22px;
+  padding:0;
+  border:none;
+  border-radius:50%;
+  background:transparent;
+  color:#6b7280;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:18px;
+  line-height:1;
+  box-shadow:none;
+}
+.search-clear:hover{background:#e5e7eb}
