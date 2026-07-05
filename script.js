@@ -123,3 +123,17 @@ function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"a
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDeviceDialog()});
 getEl("deviceModal")?.addEventListener("click",e=>{if(e.target.id==="deviceModal")closeDeviceDialog()});
 migrateDeviceUniqueCodes();recordDate.value=today();resetDeviceForm();render();
+function toggleSearchClear(){
+ const el=getEl('deviceSearch'),btn=getEl('deviceSearchClear');
+ if(!el||!btn)return;
+ btn.classList.toggle('hidden',!el.value);
+}
+function clearDeviceSearch(){
+ const el=getEl('deviceSearch');
+ if(!el)return;
+ el.value='';
+ toggleSearchClear();
+ render();
+ el.focus();
+}
+document.addEventListener('DOMContentLoaded',toggleSearchClear);

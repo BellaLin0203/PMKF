@@ -287,3 +287,8 @@ button.small{
     min-height:var(--control-height);
   }
 }
+
+.search-box{position:relative;display:inline-block;max-width:320px;width:100%}
+.search-box .search{max-width:none;width:100%;padding-right:42px}
+.search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;min-height:30px;height:30px;border-radius:999px;padding:0;background:#e5e7eb;color:#6b7280;font-size:18px}
+.search-clear:hover{background:#d1d5db}
