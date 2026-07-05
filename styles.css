@@ -288,36 +288,49 @@ button.small{
   }
 }
 
-.search-box{position:relative;display:inline-block;max-width:320px;width:100%}
-.search-box .search{max-width:none;width:100%;padding-right:42px}
-.search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;min-height:30px;height:30px;border-radius:999px;padding:0;background:#e5e7eb;color:#6b7280;font-size:18px}
-.search-clear:hover{background:#d1d5db}
 
-
-/* Search clear button */
-.search-wrap{position:relative;display:inline-block;width:100%}
-.search{padding-right:46px}
+/* 搜尋框：右側圓形清除按鈕（不使用 button，避免套用全域按鈕樣式） */
+.search-box{
+  position:relative;
+  display:inline-block;
+  width:100%;
+  max-width:320px;
+}
+.search-box .search{
+  width:100%;
+  max-width:none;
+  padding-right:48px;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.search-box .search::-webkit-search-cancel-button{
+  -webkit-appearance:none;
+  appearance:none;
+  display:none;
+}
 .search-clear{
-position:absolute;
-right:12px;
-top:50%;
-transform:translateY(-50%);
-width:28px;
-height:28px;
-min-height:28px;
-padding:0;
-border:none;
-border-radius:50%;
-background:#e5e7eb;
-color:#6b7280;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:18px;
-font-weight:700;
-line-height:1;
-cursor:pointer;
-box-shadow:none;
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:#e5e7eb;
+  color:#6b7280;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:800;
+  line-height:1;
+  cursor:pointer;
+  user-select:none;
+  z-index:2;
 }
 .search-clear:hover{background:#d1d5db;color:#374151}
-.search-clear:active{transform:translateY(-50%) scale(.95);}
+.search-clear:active{transform:translateY(-50%) scale(.95)}
+.search-clear.hidden{display:none}
+@media(max-width:560px){
+  .toolbar-actions .search-box{width:100%;max-width:none}
+}

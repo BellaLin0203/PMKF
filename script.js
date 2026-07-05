@@ -137,3 +137,5 @@ function clearDeviceSearch(){
  el.focus();
 }
 document.addEventListener('DOMContentLoaded',toggleSearchClear);
+
+getEl('deviceSearchClear')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();clearDeviceSearch();}});
