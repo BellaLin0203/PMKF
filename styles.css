@@ -336,53 +336,74 @@ button.small{
 }
 
 
-/* Modern Tabs */
+/* Industrial minimalist refresh */
+:root{
+ --bg:#eef1f4;
+ --card:#ffffff;
+ --primary:#3a4b5f;
+ --primary-dark:#2f3d4e;
+ --border:#d7dde3;
+ --shadow:0 2px 10px rgba(0,0,0,.05);
+ --radius:6px;
+}
+body{background:var(--bg);}
+header{
+ background:#2b3440;
+ padding:18px 24px;
+ border-bottom:1px solid #46515d;
+}
+header h1{font-size:24px;font-weight:700;letter-spacing:.5px}
+header p{opacity:.75}
 .tabs,.subtabs{
-  display:flex;
-  gap:10px;
-  padding:8px;
-  background:#ffffff;
-  border:1px solid var(--border);
-  border-radius:18px;
-  box-shadow:0 6px 20px rgba(15,23,42,.05);
-  overflow-x:auto;
-  flex-wrap:nowrap;
+ gap:10px;
+ border-bottom:1px solid var(--border);
+ padding-bottom:10px;
 }
 .tab,.subtab{
-  position:relative;
-  border-radius:14px;
-  padding:12px 18px;
-  white-space:nowrap;
-  background:transparent;
-  color:#64748b;
-  transition:all .25s ease;
-}
-.tab:hover,.subtab:hover{
-  background:#eef4ff;
-  color:var(--primary);
+ background:transparent;
+ color:#586270;
+ border-radius:4px;
+ padding:10px 12px;
+ font-weight:600;
+ border-bottom:2px solid transparent;
 }
 .tab.active,.subtab.active{
-  background:linear-gradient(135deg,#2563eb,#3b82f6);
-  color:#fff;
-  box-shadow:0 8px 20px rgba(37,99,235,.30);
+ background:#fff;
+ color:#222;
+ border-bottom:2px solid var(--primary);
+ box-shadow:none;
 }
-.tab.active::after,.subtab.active::after{
-  content:"";
-  position:absolute;
-  left:20%;
-  right:20%;
-  bottom:6px;
-  height:3px;
-  border-radius:99px;
-  background:rgba(255,255,255,.7);
+.card,.stat,.device-card-item{
+ border:1px solid var(--border);
+ border-radius:6px;
+ box-shadow:var(--shadow);
 }
-@media(max-width:560px){
-  .tabs,.subtabs{
-    border-radius:14px;
-    padding:6px;
-  }
-  .tab,.subtab{
-    padding:10px 14px;
-    font-size:14px;
-  }
+.device-card-item:hover{
+ transform:none;
+ border-color:#8d99a6;
+ box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+.info-row{
+ border-top:none;
+ padding:5px 0;
+}
+button{
+ border-radius:4px;
+ background:#dfe4e8;
+}
+button.primary{
+ background:#495867;
+}
+button.primary:hover{
+ background:#36414d;
+}
+input,select,textarea{
+ border-radius:4px;
+ background:#fafbfc;
+}
+table{
+ border-radius:6px;
+}
+th{
+ background:#f3f5f7;
 }
