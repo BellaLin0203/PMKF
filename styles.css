@@ -334,3 +334,55 @@ button.small{
 @media(max-width:560px){
   .toolbar-actions .search-box{width:100%;max-width:none}
 }
+
+
+/* Modern Tabs */
+.tabs,.subtabs{
+  display:flex;
+  gap:10px;
+  padding:8px;
+  background:#ffffff;
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:0 6px 20px rgba(15,23,42,.05);
+  overflow-x:auto;
+  flex-wrap:nowrap;
+}
+.tab,.subtab{
+  position:relative;
+  border-radius:14px;
+  padding:12px 18px;
+  white-space:nowrap;
+  background:transparent;
+  color:#64748b;
+  transition:all .25s ease;
+}
+.tab:hover,.subtab:hover{
+  background:#eef4ff;
+  color:var(--primary);
+}
+.tab.active,.subtab.active{
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:#fff;
+  box-shadow:0 8px 20px rgba(37,99,235,.30);
+}
+.tab.active::after,.subtab.active::after{
+  content:"";
+  position:absolute;
+  left:20%;
+  right:20%;
+  bottom:6px;
+  height:3px;
+  border-radius:99px;
+  background:rgba(255,255,255,.7);
+}
+@media(max-width:560px){
+  .tabs,.subtabs{
+    border-radius:14px;
+    padding:6px;
+  }
+  .tab,.subtab{
+    padding:10px 14px;
+    font-size:14px;
+  }
+}
