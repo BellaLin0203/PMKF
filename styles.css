@@ -407,3 +407,71 @@ table{
 th{
  background:#f3f5f7;
 }
+
+/* 保養提醒卡片 */
+.due-card-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.due-card-item{
+  position:relative;
+  min-width:0;
+  background:#fff;
+  border:1px solid var(--border);
+  border-left:4px solid #a4adb7;
+  border-radius:5px;
+  padding:14px;
+  box-shadow:0 1px 5px rgba(0,0,0,.04);
+}
+.due-card-item.overdue{border-left-color:#b42318}
+.due-card-item.upcoming{border-left-color:#b7791f}
+.due-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.due-card-head > div{min-width:0}
+.due-card-title{
+  font-size:16px;
+  font-weight:750;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.due-card-code{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+  overflow-wrap:anywhere;
+}
+.due-card-head .badge{
+  flex:0 0 auto;
+  border-radius:4px;
+  padding:4px 7px;
+  white-space:nowrap;
+}
+.due-card-info{display:grid;gap:7px}
+.due-info-row{
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+}
+.due-info-row span{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.due-info-row strong{
+  min-width:0;
+  font-size:13px;
+  font-weight:650;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+@media(max-width:560px){
+  .due-card-list{grid-template-columns:1fr}
+  .due-card-item{padding:13px}
+}
