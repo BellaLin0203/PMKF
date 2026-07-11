@@ -475,3 +475,5 @@ th{
   .due-card-list{grid-template-columns:1fr}
   .due-card-item{padding:13px}
 }
+
+.info-row strong{white-space:pre-wrap;}
