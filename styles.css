@@ -475,14 +475,3 @@ th{
   .due-card-list{grid-template-columns:1fr}
   .due-card-item{padding:13px}
 }
-
-
-.record-card-list{display:grid;gap:12px}
-.record-card{background:var(--card,#fff);border:1px solid #d6dbe3;border-radius:10px;padding:14px}
-.record-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px}
-.record-date{font-weight:700}
-.record-device{color:#666;font-size:.92rem}
-.record-row{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-top:1px solid #eceff3}
-.record-row:first-of-type{border-top:none}
-.record-row span{color:#666}
-.record-row strong{text-align:right;font-weight:600;word-break:break-word}
