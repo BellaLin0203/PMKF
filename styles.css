@@ -481,3 +481,12 @@ th{
 }
 
 .info-row strong{white-space:pre-wrap;}
+
+/* 設備卡完整欄位 */
+.device-card-info .info-row{
+  grid-template-columns:72px minmax(0,1fr);
+}
+.device-card-info .note-row strong{
+  white-space:normal;
+  word-break:break-word;
+}

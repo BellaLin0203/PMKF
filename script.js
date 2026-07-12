@@ -89,22 +89,22 @@ function renderDevices(){
   }
   deviceList.innerHTML=`<div class="device-card-list">${list.map(d=>{
     const unique=esc(d.uniqueCode||d.id||"-");
-    const modelText=esc([d.brand,d.model].filter(Boolean).join(" ")||"-");
-    const serialText=esc(d.serial||"-");
     const partCount=data.parts.filter(p=>p.deviceId===d.id).length;
     return `<article class="device-card-item" onclick="openDeviceParts('${d.id}')">
       <div class="device-card-head">
         <div>
           <div class="device-uid">${unique}</div>
-          <div class="device-card-title">${esc(d.name)}</div>
-          <div class="device-card-code">設備編號：${esc(d.code||"未設定")}</div>
+          <div class="device-card-title">${esc(d.name||"未命名設備")}</div>
         </div>
         <span class="device-card-count">${partCount} 個零件</span>
       </div>
       <div class="device-card-info">
+        <div class="info-row"><span>設備編號</span><strong>${esc(d.code||"-")}</strong></div>
         <div class="info-row"><span>位置</span><strong>${esc(d.location||"-")}</strong></div>
-        <div class="info-row"><span>型號</span><strong>${modelText}</strong></div>
-        <div class="info-row"><span>序號</span><strong>${serialText}</strong></div>
+        <div class="info-row"><span>廠牌</span><strong>${esc(d.brand||"-")}</strong></div>
+        <div class="info-row"><span>型號</span><strong>${esc(d.model||"-")}</strong></div>
+        <div class="info-row"><span>序號</span><strong>${esc(d.serial||"-")}</strong></div>
+        <div class="info-row note-row"><span>備註</span><strong>${esc(d.note||"-").replace(/\n/g,'<br>')}</strong></div>
       </div>
       <div class="device-card-actions">
         <button class="small danger" onclick="deleteDevice('${d.id}',event)">刪除</button>
