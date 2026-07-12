@@ -424,6 +424,10 @@ th{
   padding:14px;
   box-shadow:0 1px 5px rgba(0,0,0,.04);
 }
+
+.due-card-item{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.due-card-item:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(15,23,42,.12)}
+.due-card-item:focus-visible{outline:3px solid rgba(37,99,235,.28);outline-offset:2px}
 .due-card-item.overdue{border-left-color:#b42318}
 .due-card-item.upcoming{border-left-color:#b7791f}
 .due-card-head{
